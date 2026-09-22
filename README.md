@@ -57,7 +57,8 @@ What protects the data, in order of how much it matters:
 
 - **Local first.** Every action writes to the phone immediately. The app is fully usable with no signal.
 - **Syncs on open, a second or two after every save or delete, and when the connection returns**, plus a **Sync now** button in Settings. The sync row counts anything still waiting, so nothing is stranded silently.
-- **Last write wins per row**, compared on `updated_at`. Deletions travel as tombstones, so removing a session on one device removes it on the others.
+- **Last write wins per row**, compared on `updated_at` — and enforced by a Postgres trigger, so a stale client cannot overwrite a newer row even if it tries.
+- **Deletions travel as tombstones** (`deleted: true` rows), never hard deletes. That is what stops another open tab or a second device re-uploading something you just erased. **Clear all data** writes tombstones for every session and hobby, removes the photo objects, and only then resets the phone; if the cloud step fails it deletes nothing and tells you so.
 - **The first launch pushes whatever is already on the phone** up to the cloud.
 - **Photos** are compressed to about 780px, uploaded to the private bucket at `<user_id>/<session_id>/<n>.jpg`, and fetched back through 10-minute signed URLs when you open a day. A photo that fails to upload stays on the phone and retries on the next sync.
 
@@ -79,15 +80,30 @@ If you ever need to rotate it (Supabase dashboard → Project Settings → API �
 
 A rotated key does not expose old data: the key never granted more than RLS allows.
 
-## One identity per install
+## Recovering your diary
 
-With no login there is no password to re-enter — and no way to prove you are you on a second device. Practical consequences:
+The app still opens with no login: the first launch signs itself in anonymously. What changed is that the identity no longer has to die with Safari's storage.
 
-- The anonymous identity lives in this phone's local storage. **Delete the Home Screen app or clear Safari data and that identity is gone**; the app signs in as a new anonymous user and the old rows become unreachable, though they stay in your Supabase tables.
-- A second device gets its own identity and its own log. Cross-device sync would need a real login — say the word and I'll put it back.
-- Before switching domains or wiping the phone: **Export backup** in Settings, then **Restore from backup** on the other side.
+**Settings → Your data → Recovery email → Add.** Type your address, Pace mails a six-digit code, you type it back. That attaches the email to the *same* Supabase user you already have — nothing moves, no second account, every existing row stays where it is.
 
-If you ever want the rows recovered after a wipe, they are still in the `sessions` table under the old `user_id` — reachable from the Supabase dashboard, not from the app.
+**On a wiped phone or a new device:** open the app (it signs in anonymously as usual), then **Settings → Already have a Pace diary? → Restore**. Same address, same six-digit code. The phone signs into the old identity and the next sync pulls the whole diary down. Anything you happened to log before restoring is kept and pushed up, so nothing is lost either way.
+
+### One Supabase change is required
+
+Supabase's default email templates send a click-through link, not a code. Dashboard → Authentication → Emails → Templates, and add the token to two of them:
+
+- **Magic Link** — used by Restore
+- **Change Email Address** — used by Add / Change
+
+In each, put `{{ .Token }}` somewhere in the body, e.g.
+
+```html
+<p>Your Pace code is <strong>{{ .Token }}</strong>. It expires in an hour.</p>
+```
+
+Leave the existing link in or take it out, either works — the app only reads the code. Also check Authentication → Sign In / Providers → Email is enabled. The built-in Supabase mailer is rate-limited to a few messages an hour, which is fine for this; hook up your own SMTP if you ever hit it.
+
+**Export backup / Restore from backup** are still in Settings and still work offline — worth one export before any big migration.
 
 ## Your data, plainly
 

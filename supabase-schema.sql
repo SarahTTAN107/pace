@@ -64,6 +64,32 @@ begin
   end loop;
 end $$;
 
+
+-- ── Last-write-wins guard ────────────────────────────────────────────────────
+-- Sync compares updated_at, but nothing stopped a stale client from upserting an
+-- OLDER row over a newer one — which could resurrect a session that another
+-- device had already deleted. This makes the rule a database invariant: an
+-- update carrying an older updated_at is ignored, not applied.
+
+create or replace function public.reject_stale_write() returns trigger as $$
+begin
+  if new.updated_at < old.updated_at then
+    return old;
+  end if;
+  return new;
+end $$ language plpgsql;
+
+drop trigger if exists sessions_lww on public.sessions;
+drop trigger if exists hobbies_lww on public.hobbies;
+drop trigger if exists prefs_lww    on public.prefs;
+
+create trigger sessions_lww before update on public.sessions
+  for each row execute function public.reject_stale_write();
+create trigger hobbies_lww before update on public.hobbies
+  for each row execute function public.reject_stale_write();
+create trigger prefs_lww before update on public.prefs
+  for each row execute function public.reject_stale_write();
+
 -- ── Photo storage ─────────────────────────────────────────────────────────
 -- Create a PRIVATE bucket named pace-photos (Storage → New bucket, Public = off),
 -- then run the rest. Photos are stored at <user_id>/<session_id>/<n>.jpg and are
