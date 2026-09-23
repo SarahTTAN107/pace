@@ -27,7 +27,10 @@ Run this once **before** deploying a new `index.html` that adds the hobby archiv
 
 ```sql
 alter table public.hobbies add column if not exists archived boolean not null default false;
+notify pgrst, 'reload schema';
 ```
+
+The `notify` line makes the API pick up the new column immediately. Without it you can see *"Could not find the 'archived' column of 'hobbies' in the schema cache"* even after the column exists.
 
 If the new app goes live first, sync stops with an error on the settings row until the column exists; nothing on the phone is lost.
 
@@ -75,7 +78,7 @@ What protects the data, in order of how much it matters:
 - **Defaults never overwrite the cloud.** A fresh or restored phone adopts your cloud theme, hobby names/colours and custom tags; untouched defaults only upload when the cloud has none.
 - **Custom tags sync** (stored inside `prefs.data.customTags`) and merge as a set across devices.
 - **Last write wins per row**, compared on `updated_at` — and enforced by a Postgres trigger, so a stale client cannot overwrite a newer row even if it tries.
-- **Archived hobbies** sync as `hobbies.archived = true`. They leave the timer picker and the Blend legend but stay in the diary, stats and "Split by hobby" with their name and colour. Restore them from **You → Archived**, or type the same name into Add a hobby. Only an archived hobby can be deleted outright (two taps), and deleting it leaves its past sessions unlabelled.
+- **Archived hobbies** sync as `hobbies.archived = true`. They leave the timer picker but stay in the diary, stats and "Split by hobby" with their name and colour. Restore them from **You → Archived**, or type the same name into Add a hobby. Only an archived hobby can be deleted outright (two taps), and deleting it leaves its past sessions unlabelled.
 - **Deletions travel as tombstones** (`deleted: true` rows), never hard deletes. That is what stops another open tab or a second device re-uploading something you just erased. **Clear all data** writes tombstones for every session and hobby, removes the photo objects, and only then resets the phone; if the cloud step fails it deletes nothing and tells you so.
 - **The first launch pushes whatever is already on the phone** up to the cloud.
 - **Photos** are compressed to about 780px, uploaded to the private bucket at `<user_id>/<session_id>/<n>.jpg`, and fetched back through 10-minute signed URLs when you open a day or view the Photos heatmap. A photo that fails to upload stays on the phone and retries on the next sync.

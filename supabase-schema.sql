@@ -115,3 +115,10 @@ create policy "own photos update" on storage.objects for update
   using (bucket_id = 'pace-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "own photos delete" on storage.objects for delete
   using (bucket_id = 'pace-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+
+-- ── Refresh the API's schema cache ───────────────────────────────────────────
+-- PostgREST caches table columns. After adding one (e.g. hobbies.archived) it can
+-- keep rejecting writes with "Could not find the '<column>' column ... in the
+-- schema cache" until reloaded. Keep this as the last statement.
+notify pgrst, 'reload schema';
