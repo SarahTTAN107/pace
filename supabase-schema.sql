@@ -1,9 +1,8 @@
 -- Pace — schema and row-level security.
 -- Run this once in your Supabase project: SQL Editor → New query → paste → Run.
 --
--- Then turn ON Authentication → Sign In / Providers → Anonymous sign-ins.
--- The app has no login screen; it signs in anonymously on first launch, and that
--- identity is what every policy below locks rows to.
+-- Accounts are email-only (six-digit code, no password). Anonymous sign-ins can
+-- stay OFF. Every policy below locks rows to the signed-in user's id.
 
 create table if not exists public.hobbies (
   user_id    uuid        not null references auth.users on delete cascade,
