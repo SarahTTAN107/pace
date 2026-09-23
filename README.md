@@ -36,7 +36,7 @@ vercel --prod
 
 1. Open the Vercel URL in **Safari** (only Safari can install to the Home Screen).
 2. Share → **Add to Home Screen**.
-3. Open it from the Home Screen, enter your email, type the six-digit code. Safari and the Home Screen app keep separate storage, so sign in from the Home Screen icon.
+3. Open it from the Home Screen, enter your email, type the code. Safari and the Home Screen app keep separate storage, so sign in from the Home Screen icon.
 
 **On a laptop:** open the same URL in any browser, sign in with the same email and code. The whole diary syncs down. **Settings → Sign out** removes it from that computer (unsynced changes are uploaded first; if that fails you're asked to tap again).
 
@@ -90,7 +90,7 @@ A rotated key does not expose old data: the key never granted more than RLS allo
 
 ## Accounts
 
-Your diary belongs to your **email account**, not to a browser. There is no password: every sign-in mails a six-digit code.
+Your diary belongs to your **email account**, not to a browser. There is no password: every sign-in mails a code.
 
 - **New phone, wiped phone, laptop:** open Pace, enter your email and the code. Everything comes down on the next sync.
 - **Logged before signing in?** "Use on this device without signing in" keeps sessions on that device only; signing in later uploads them to your account. If a device still holds a *different* account's leftovers, they are discarded rather than uploaded into yours.
