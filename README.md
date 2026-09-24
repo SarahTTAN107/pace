@@ -23,6 +23,8 @@ To open sign-up to anyone with the link, set `allowSignup: true` in the `window.
 
 ### Upgrading an existing project
 
+**Photo/video viewer and video support:** no SQL needed. Deploy `vercel.json` together with `index.html`: its Content-Security-Policy gains `media-src`, and without it videos will not play. If you set a file size limit or allowed MIME types on the `pace-photos` bucket, allow `video/*` and at least 50 MB.
+
 Run this once **before** deploying a new `index.html` that adds the hobby archive (re-running the whole `supabase-schema.sql` also works — it is idempotent):
 
 ```sql
@@ -59,7 +61,7 @@ What protects the data, in order of how much it matters:
 
 1. **Row-level security.** Every table has policies allowing only `auth.uid() = user_id`, for select, insert, update and delete. `user_id` also defaults to `auth.uid()`, so the client cannot write a row belonging to anyone else. This is the real lock.
 2. **The anon key is not a secret and does not need to be.** It identifies the project and nothing more; with RLS on it grants access to zero rows until someone holds a valid session. Never replace it with `service_role`, which bypasses RLS entirely.
-3. **Private storage bucket.** `pace-photos` is not public. Photos are only ever read through signed URLs that expire in 10 minutes, and the storage policies confine each identity to its own `<user_id>/` folder.
+3. **Private storage bucket.** `pace-photos` is not public. Photos and videos are only ever read through signed URLs that expire within an hour, and the storage policies confine each identity to its own `<user_id>/` folder.
 4. **Transport.** Vercel and Supabase are HTTPS only, and `vercel.json` sends HSTS, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, `no-referrer` and a Content-Security-Policy whose `connect-src` allows your Supabase project and nothing else — so even a successful script injection has nowhere to send your data.
 5. **At rest.** Supabase encrypts disks and backups; on the phone the log sits in Safari's storage for that one origin, behind your device passcode and iOS encryption.
 
@@ -81,7 +83,10 @@ What protects the data, in order of how much it matters:
 - **Archived hobbies** sync as `hobbies.archived = true`. They leave the timer picker but stay in the diary, stats and "Split by hobby" with their name and colour. Restore them from **You → Archived**, or type the same name into Add a hobby. Only an archived hobby can be deleted outright (two taps), and deleting it leaves its past sessions unlabelled.
 - **Deletions travel as tombstones** (`deleted: true` rows), never hard deletes. That is what stops another open tab or a second device re-uploading something you just erased. **Clear all data** writes tombstones for every session and hobby, removes the photo objects, and only then resets the phone; if the cloud step fails it deletes nothing and tells you so.
 - **The first launch pushes whatever is already on the phone** up to the cloud.
-- **Photos** are compressed to about 780px, uploaded to the private bucket at `<user_id>/<session_id>/<n>.jpg`, and fetched back through 10-minute signed URLs when you open a day or view the Photos heatmap. A photo that fails to upload stays on the phone and retries on the next sync.
+- **Photos** are compressed to about 780px for the diary and uploaded to the private bucket at `<user_id>/<session_id>/<n>.jpg`, plus a full-size copy (up to 2400px) at `<n>.full.jpg`. The small copies come back through signed URLs when you open a day or view the Photos heatmap; the full-size one only when you enlarge or download the photo. A photo that fails to upload stays on the phone and retries on the next sync.
+- **Videos** (up to 50 MB each, the Supabase free-plan upload limit) are uploaded to `<n>.video`, with a still frame at `<n>.video.jpg` that the diary and heatmap show. `photo_paths` stores that still frame's path, so no schema change is needed, and an older copy of the app shows the still instead of breaking.
+- **Until they upload, videos and full-size photos wait in the browser's IndexedDB**, not localStorage (Safari's ~5 MB would not hold them). Once uploaded, the phone's copy is deleted and the bucket is the only copy. Enlarging or downloading them then needs a connection; the small photo copy still works offline.
+- **Enlarge and download:** in the Diary, open a day and tap a session, its thumbnail or **Expand**. Photos and videos fill the screen (swipe, the arrows or ← → to move between them, Esc to close), with the full note and tags below. **Download** saves the largest copy available. On a phone it opens the share sheet, so **Save Image / Save Video** puts it in Photos; on a computer it downloads the file.
 - **Phone storage never silently fills.** Safari gives the app ~5 MB. Once a photo is safely in the bucket its local copy is only a cache: past ~3 MB, cached photos older than 30 days are dropped; if a save would still hit the limit, older uploaded photos go first. Photos not yet uploaded are never dropped.
 
 ## Files
