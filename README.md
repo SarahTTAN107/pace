@@ -9,11 +9,17 @@ Static site, no build step. Data lives on the phone first and syncs to your own 
    - **Email**: on.
    - **Anonymous sign-ins**: **off**. Pace signs in with email only.
    - **Allow new users to sign up**: **off** (invite-only). Matches `allowSignup: false` in `index.html`.
-3. **Authentication → Users → Add user → Create new user**: enter the email, set any password (it is never used), tick **Auto Confirm User**. Do this for yourself if your address isn't listed yet, and for each friend you invite.
+3. **Authentication → Users → Add user**, for yourself if your address isn't listed yet and for each friend you invite. Either option works:
+   - **Send invitation**: enter the email. The schema's `pace_confirm_invited` trigger confirms the account straight away, so the tester can open Pace and sign in with a code without clicking the invite link.
+   - **Create new user**: enter the email, set any password (it is never used), tick **Auto Confirm User**.
 4. **Authentication → Emails → SMTP Settings**: custom SMTP (e.g. Gmail with an app password, no spaces). Required on free projects to edit templates.
 5. **Email Templates**: put `{{ .Token }}` in **Magic Link** (sign-in) and **Change Email Address**:
    ```html
    <p>Your Pace code is <strong>{{ .Token }}</strong>. It expires in an hour.</p>
+   ```
+   In **Invite user**, point testers at the app instead of the confirmation link (Pace ignores sign-in links and uses codes):
+   ```html
+   <p>You're invited to Pace. Open <a href="{{ .SiteURL }}">{{ .SiteURL }}</a>, enter this email address and type in the code Pace sends you.</p>
    ```
 6. **Authentication → URL Configuration**: add your Vercel URL as Site URL.
 
@@ -22,6 +28,24 @@ The project URL and **anon** key in `index.html` are safe to ship: RLS restricts
 To open sign-up to anyone with the link, set `allowSignup: true` in the `window.PACE_SUPABASE` block of `index.html` **and** turn **Allow new users to sign up** back on.
 
 ### Upgrading an existing project
+
+**Invited testers can't sign in** (*"There is no Pace account for that address"* after **Send invitation**): re-run `supabase-schema.sql`, or just this block. It confirms invited accounts from now on and unblocks the ones already stuck:
+
+```sql
+create or replace function public.confirm_invited_user() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if new.invited_at is not null and new.email_confirmed_at is null then
+    new.email_confirmed_at := now();
+  end if;
+  return new;
+end $$;
+drop trigger if exists pace_confirm_invited on auth.users;
+create trigger pace_confirm_invited before insert or update on auth.users
+  for each row execute function public.confirm_invited_user();
+update auth.users set email_confirmed_at = now()
+where invited_at is not null and email_confirmed_at is null;
+```
 
 **Photo/video viewer and video support:** no SQL needed. Deploy `vercel.json` together with `index.html`: its Content-Security-Policy gains `media-src`, and without it videos will not play. If you set a file size limit or allowed MIME types on the `pace-photos` bucket, allow `video/*` and at least 50 MB.
 

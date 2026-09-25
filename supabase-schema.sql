@@ -93,6 +93,32 @@ create trigger hobbies_lww before update on public.hobbies
 create trigger prefs_lww before update on public.prefs
   for each row execute function public.reject_stale_write();
 
+-- ── Invited testers can sign in with a code ─────────────────────────────────
+-- Authentication → Users → Invite user creates the account UNCONFIRMED. For an
+-- unconfirmed user, Supabase treats a sign-in code request as a new sign-up,
+-- which fails with "Signups not allowed" while sign-ups are off — so the tester
+-- saw "There is no Pace account for that address" and the owner had to add them
+-- again with Auto Confirm. Confirming at invite time fixes that: only the owner
+-- can invite (dashboard / service role), so this does not open sign-up.
+
+create or replace function public.confirm_invited_user() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if new.invited_at is not null and new.email_confirmed_at is null then
+    new.email_confirmed_at := now();
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists pace_confirm_invited on auth.users;
+create trigger pace_confirm_invited before insert or update on auth.users
+  for each row execute function public.confirm_invited_user();
+
+-- Unblocks testers who were invited before this trigger existed.
+update auth.users set email_confirmed_at = now()
+where invited_at is not null and email_confirmed_at is null;
+
+
 -- ── Photo storage ─────────────────────────────────────────────────────────
 -- Create a PRIVATE bucket named pace-photos (Storage → New bucket, Public = off),
 -- then run the rest. Photos are stored at <user_id>/<session_id>/<n>.jpg and are
