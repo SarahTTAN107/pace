@@ -38,13 +38,12 @@ If the new app goes live first, sync stops with an error on the settings row unt
 
 ## 2. Deploy
 
-**Dashboard:** vercel.com → Add New → Project → drag this folder in.
+**Dashboard:** vercel.com → Add New → Project → drag the repository folder in (or import the GitHub repo).
 
 **CLI:**
 ```
 npm i -g vercel
-cd pace-vercel
-vercel --prod
+vercel --prod   # run from the repository root
 ```
 
 ## 3. Install on your iPhone
