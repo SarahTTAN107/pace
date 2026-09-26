@@ -7,7 +7,7 @@
   "orientation": "portrait",
   "background_color": "#f3f2f2",
   "theme_color": "#f3f2f2",
-  "description": "A private hobby logbook. Timer, photos, notes and a diary heatmap — all stored on this device.",
+  "description": "A private hobby logbook. Timer, photos, notes and a diary heatmap — synced privately to your account.",
   "icons": [
     {
       "src": "icon-192.png",
