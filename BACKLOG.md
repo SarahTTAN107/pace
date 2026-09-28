@@ -54,3 +54,13 @@ Suggested direction: white or light-silver background, navy text, a deep-to-ocea
 - hours this week / month / all time,
 - progress bar against the target (or baseline if none is set),
 - trend vs. last period, and for milestones a projected finish date.
+
+### 5. Diary: redesign the "Time only" legend in the Media heatmap
+
+**Problem:** in the Diary heatmap's Media view, the legend has two entries: "Has a photo" (an empty swatch with an outline) and "Time only" (a 10% grey fill). The grey looks dull and washed out, and the two swatches are hard to tell apart.
+
+**Want:** a redesigned legend, starting with colour:
+- Give "Time only" a real colour from the new palette (item 3), e.g. a soft light blue, instead of grey.
+- Make "Has a photo" clearly stronger than "Time only", e.g. a deep blue fill or a small photo/camera mark, rather than an empty outline.
+- Keep the legend swatches identical to the heatmap cells they describe, and check contrast in both light and dark mode.
+- Consider clearer labels, e.g. "With media" / "Time logged".
