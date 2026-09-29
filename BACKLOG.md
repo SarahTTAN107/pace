@@ -2,33 +2,99 @@
 
 One list for all open work. When an item ships, move it to **Done** with the PR that closed it.
 
-**Priority:** **P1** blocks you or a tester · **P2** core feature is wrong or missing · **P3** polish.
+**Priority:** **P0** highest, do first · **P1** high · **P2** core feature is wrong or missing · **P3** polish.
 
-_Last reviewed 2026-09-28._
+_Last reviewed 2026-09-29._
 
 ## Order of work
 
 | # | ID | Pri | Area | Item | Status | Size |
 |---|----|-----|------|------|--------|------|
-| 1 | PACE-1 | P1 | Deploy | Testers in a private window land on a Vercel login page | Open: settings change + README note | S |
-| 2 | PACE-2 | P1 | Auth | Invited testers can't sign in | Fix ready in PR #9, needs merge + SQL run | S |
-| 3 | PACE-5 | P2 | Timer | Clock in and Countdown share one clock | Open | M |
-| 4 | PACE-6 | P3 | Design | Water-element colour palette | Open | M |
-| 5 | PACE-9 | P3 | Diary | "Time only" legend is a dull grey | Open, ship with PACE-6 | S |
-| 6 | PACE-7 | P3 | Design | Lighter, Apple-style UI | Open, after PACE-6 | L |
-| 7 | PACE-8 | P2 | Stats | Progress against a benchmark per hobby | **Needs your decision** on targets | L |
+| 1 | PACE-7 | **P0** | Design | Align the whole app, all UX and UI, with Apple's design principles | Open | XL |
+| 2 | PACE-10 | P1 | Brand | Simpler, Nordic-style logo | Open, alongside PACE-7 | S |
+| 3 | PACE-1 | P1 | Deploy | Testers in a private window land on a Vercel login page | Open: settings change + README note | S |
+| 4 | PACE-2 | P1 | Auth | Invited testers can't sign in | Fix ready in PR #9, needs merge + SQL run | S |
+| 5 | PACE-8 | P2 | Stats | Progress against a benchmark per hobby | **Needs your decision** on targets | L |
+
+PACE-6 (Water palette) and PACE-9 ("Time only" legend) are now steps inside PACE-7.
 
 **Why this order**
-- **1–2 first:** they stop friends from getting into the app at all. Both are quick.
-- **3 next:** a real bug in the main screen, small and self-contained.
-- **4–6 together:** one visual refresh. Colours come first because they are design tokens every screen uses. The legend fix is a few lines once the palette exists.
-- **7 last, though it matters most:** Stats needs a new screen. Building it after the refresh means it's built once, in the new style. If you'd rather have Stats sooner, it can move to #4. Either way, pick a target model (below) so it isn't blocked.
+- **PACE-7 is the top priority.** Every screen and interaction gets redone to Apple's standards, starting with the colour palette, since every screen uses it.
+- **PACE-10 goes with it:** the new logo should use the same palette and style, so both land together.
+- **PACE-1 and PACE-2 are settings and merge jobs, not app code.** They take minutes and can happen any time, in parallel.
+- **PACE-8 comes after the redesign,** so the new Stats screen is built once, in the new style. It still needs your target decision.
 
 ---
 
-## P1 — unblock testers
+## P0 — highest priority
 
-### PACE-1 · Private-window visitors see a Vercel login page
+### PACE-7 · Align the app with Apple's design principles, for all UX and UI
+
+**Today:** it feels boxy, with lines and borders too thick and bold (2 px outlines, heavy fonts, lots of uppercase). Layout and interactions don't feel native on iPhone.
+
+**Want:** every screen, control and interaction follows Apple's Human Interface Guidelines: clarity, deference (content first, the interface stays quiet) and depth.
+
+**UI (how it looks)**
+- Hairline separators (0.5–1 px) or none. Group content with spacing and soft fills, not outlines.
+- Rounded, grouped sections like iOS Settings, without boxes inside boxes.
+- `-apple-system` / SF Pro with Apple's type scale: regular weight for body text, semibold for titles only, few uppercase labels. Support larger text sizes (Dynamic Type).
+- Filled pill for the main button, tinted pill for secondary buttons. A native-style segmented control for Clock in / Countdown.
+- Generous whitespace, SF Symbols-style line icons, full dark mode.
+
+**UX (how it behaves)**
+- Tab bar at the bottom with clear icons and labels. Large titles that shrink as you scroll.
+- Tap targets of at least 44 pt, with main actions within thumb reach.
+- Sheets and swipe gestures for secondary tasks (log a past session, edit, delete with swipe-to-delete), with confirmation only for destructive actions.
+- Subtle, meaningful motion (respect Reduce Motion), clear feedback on every tap, helpful empty states, and plain-language errors.
+- Accessibility: VoiceOver labels, enough contrast, no meaning shown by colour alone.
+
+**Work:** start with a short style guide (tokens for colour, type, spacing, corner radius), then go screen by screen so each PR stays reviewable:
+
+#### Step 1 · PACE-6 · Colour palette: Water element (mệnh Thủy, Giản Hạ Thủy)
+
+| Role | Colours | Why |
+|---|---|---|
+| Main | navy, deep blue, ocean blue, black | Thủy, your own element |
+| Supporting | white, silver, light grey | Kim sinh Thủy: Metal feeds Water |
+| Small accents only | green | Thủy sinh Mộc: Water feeds Wood |
+| Avoid | yellow, brown, beige, earth tones; little red/orange/pink | Thổ khắc Thủy: Earth blocks Water |
+
+**Direction:** light-silver or white background, navy text, a deep-to-ocean blue accent for the timer, progress and heatmap, silver hairlines. In dark mode: near-black background with a brighter blue accent.
+**Work:** move colours into shared tokens (they're currently inline per screen), define light and dark sets, and check text contrast.
+
+#### Step 2 · Screens
+Timer → Diary → Stats → Settings and sign-in, one PR each.
+
+#### Step 3 · PACE-9 · Diary: redesign the "Time only" legend (Media heatmap, ships with the Diary PR)
+
+**Today:** the Media heatmap legend shows "Has a photo" as an empty outlined square and "Time only" as a 10% grey fill. The grey looks dull, and the two squares are hard to tell apart.
+
+**Want:**
+- "Time only": a soft light blue from PACE-6.
+- "Has a photo": clearly stronger, either deep blue or a small camera mark.
+- Legend squares that match the heatmap cells exactly, readable in light and dark mode.
+- Optional: clearer labels, e.g. "With media" / "Time logged".
+
+**Done when:** every screen follows the style guide in light and dark mode, and nothing uses the old 2 px borders or heavy fonts.
+
+---
+
+## P1 — high
+
+### PACE-10 · Logo: simpler, Nordic design
+
+**Today:** the icon is a bright red square with a heavy white "P". It's loud, and red clashes with the Water palette (PACE-6).
+
+**Want:** a calm, minimal, Scandinavian-style mark:
+- One simple geometric shape with plenty of empty space, e.g. a thin ring (a clock or pace loop) with a small dot, or a light lowercase "p".
+- Muted colours from the palette, e.g. a navy mark on off-white or silver, or white on deep blue. No gradients or shadows.
+- Readable at small sizes: test at Home Screen size and in Settings.
+
+**Work:** make it as SVG, then export `icon-180.png`, `icon-192.png` and `icon-512.png` (keep the mark inside the safe zone, since iOS rounds the corners). Update `theme_color` / `background_color` in `manifest.webmanifest` and the in-app "Pace" splash to match. Show 2–3 options to choose from before finalising.
+
+### Testers
+
+#### PACE-1 · Private-window visitors see a Vercel login page
 
 A friend opening the app in a private window gets Vercel's "Log in" page. This comes from Vercel's **Deployment Protection**, not Pace's code. It protects preview and per-deployment URLs (`pace-git-<branch>-….vercel.app`, `pace-<hash>-….vercel.app`). Your normal browser is signed in to Vercel, so you never see it.
 
@@ -41,7 +107,7 @@ A friend opening the app in a private window gets Vercel's "Log in" page. This c
 
 **Done when:** the shared link opens Pace's sign-in screen in a fresh private window on iPhone Safari.
 
-### PACE-2 · Invited testers can't sign in
+#### PACE-2 · Invited testers can't sign in
 
 "Send invitation" in Supabase creates an unconfirmed user, so the sign-in code fails with *"There is no Pace account for that address."*
 
@@ -52,19 +118,6 @@ A friend opening the app in a private window gets Vercel's "Log in" page. This c
 ---
 
 ## P2 — core features
-
-### PACE-5 · Timer: Clock in and Countdown must work separately
-
-**Today:** there is a single running clock. The *Clock in / Countdown goal* switch only changes how that clock is shown (counting up vs. counting down from the goal), and you can flip it mid-session. So starting one looks like starting both, and switching modes jumps the display.
-
-**Want:** two independent modes. Starting, pausing or resetting one never touches the other.
-
-**Approach:**
-- Save the mode on the live session when it starts. While a session runs, lock the switch or show only that session's mode.
-- Show the goal chips (25 / 45 / 60 m) and the "% of goal" bar only in Countdown.
-- Optional: when a countdown reaches zero, give a soft alert and offer "keep going" (continues as overtime) or "wrap up".
-
-**Decision:** one session at a time (recommended; a session is one block of practice) or both at once? The backlog assumes one at a time.
 
 ### PACE-8 · Stats: progress against a benchmark per hobby
 
@@ -87,49 +140,11 @@ A friend opening the app in a private window gets Vercel's "Log in" page. This c
 
 ---
 
-## P3 — visual refresh (PACE-6 → PACE-9 → PACE-7)
-
-### PACE-6 · Colour palette: Water element (mệnh Thủy, Giản Hạ Thủy)
-
-| Role | Colours | Why |
-|---|---|---|
-| Main | navy, deep blue, ocean blue, black | Thủy, your own element |
-| Supporting | white, silver, light grey | Kim sinh Thủy: Metal feeds Water |
-| Small accents only | green | Thủy sinh Mộc: Water feeds Wood |
-| Avoid | yellow, brown, beige, earth tones; little red/orange/pink | Thổ khắc Thủy: Earth blocks Water |
-
-**Direction:** light-silver or white background, navy text, a deep-to-ocean blue accent for the timer, progress and heatmap, silver hairlines. In dark mode: near-black background with a brighter blue accent.
-**Work:** move colours into shared tokens (they're currently inline per screen), define light and dark sets, and check text contrast.
-
-### PACE-9 · Diary: redesign the "Time only" legend (Media heatmap)
-
-**Today:** the Media heatmap legend shows "Has a photo" as an empty outlined square and "Time only" as a 10% grey fill. The grey looks dull, and the two squares are hard to tell apart.
-
-**Want:**
-- "Time only": a soft light blue from PACE-6.
-- "Has a photo": clearly stronger, either deep blue or a small camera mark.
-- Legend squares that match the heatmap cells exactly, readable in light and dark mode.
-- Optional: clearer labels, e.g. "With media" / "Time logged".
-
-### PACE-7 · UI: Apple design principles
-
-**Today:** it feels boxy, with lines and borders too thick and bold (2 px outlines, heavy fonts, lots of uppercase).
-
-**Want (Apple's Human Interface Guidelines):**
-- Hairline separators (0.5–1 px) or none. Group content with spacing and soft fills, not outlines.
-- Rounded, grouped sections like iOS Settings, without boxes inside boxes.
-- `-apple-system` / SF Pro: regular weight for body text, semibold for titles only, few uppercase labels.
-- Filled pill for the main button, tinted pill for secondary buttons. A native-style segmented control for Clock in / Countdown.
-- Generous whitespace, tap targets of at least 44 pt, subtle motion. Support dark mode and larger text.
-
-**Work:** go screen by screen (Timer → Diary → Stats → Settings) so each PR stays reviewable.
-
----
-
 ## Done
 
 | ID | Item | PR |
 |----|------|----|
+| PACE-5 | Clock in and Countdown goal run independently: a session belongs to the mode it started in | #12 |
 | PACE-3 | Removed the stale `pace-vercel 2/` copy of the app | #10 |
 | PACE-4 | README deploy steps no longer point at a missing folder | #10 |
 | — | Backlog started | #11 |
