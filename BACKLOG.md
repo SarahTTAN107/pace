@@ -14,28 +14,31 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 - Decide whether both can run at the same time (two live sessions) or only one at a time, with switching tabs leaving the other untouched. One at a time is simpler and matches "log one session".
 - The goal chips (25 / 45 / 60 m) and the `% of goal` bar should show only in Countdown mode.
 
-### 2. UI: follow Apple design principles
+### PACE-7. Apple design for the whole app (look and behaviour)
 
-**Problem:** the current UI feels too boxy. Borders and lines are too thick and too bold.
+**Problem:** the UI feels boxy. Borders and lines are too thick and bold, and the orange-and-grey palette clashes with the Water-element colours below.
 
-**Want:** a lighter look in line with Apple's Human Interface Guidelines:
-- Thin separators (hairline, 0.5–1 px) or no borders at all; group content with spacing and soft background fills instead of outlines.
-- Grouped, rounded "inset list" sections as in iOS Settings, with larger corner radii and fewer boxes inside boxes.
-- A clear type scale: SF Pro / `-apple-system`, regular weight for body text, semibold only for titles, fewer uppercase labels.
-- Pill buttons with a filled primary and tinted secondary, instead of 2 px outlined chips.
-- Plenty of whitespace, a 44 pt minimum tap target, native-feeling segmented control for Clock in / Countdown.
-- Subtle motion and haptics-style feedback; respect dark mode and Dynamic Type.
+**Scope:** the whole app, both how it looks and how it behaves, following Apple's Human Interface Guidelines.
 
-### 3. Colours: feng shui palette for Water element (mệnh Thủy — Giản Hạ Thủy)
+- **Look:** hairline separators (0.5–1 px) or none; iOS-style grouped, rounded inset sections with fewer boxes inside boxes; SF Pro / `-apple-system` with the iOS text sizes (regular body, semibold titles, fewer uppercase labels); pill buttons, filled primary and tinted secondary.
+- **Behaviour:** iOS-style tab bar at the bottom (with icons); sheets (pop-up panels) and swipe gestures; tap targets of at least 44 pt; native-feeling segmented control for Clock in / Countdown; subtle motion and haptics-style feedback; accessibility (contrast, Dynamic Type, VoiceOver labels, reduced motion); dark mode.
 
-**Want:** re-theme the app in colours that suit the Water element (Giản Hạ Thủy, "water in the stream").
+**Colours: feng shui palette for the Water element (mệnh Thủy — Giản Hạ Thủy, "water in the stream").** Replaces the orange and grey everywhere.
 
-- **Main colours (Thủy, bản mệnh):** black, navy, deep blue, ocean blue.
-- **Supporting colours (Kim sinh Thủy, Metal feeds Water):** white, silver, light grey.
-- **Use sparingly:** green (Thủy sinh Mộc, Water feeds Wood; fine as a small accent).
-- **Avoid:** yellow, brown, beige, earth tones (Thổ khắc Thủy, Earth blocks Water). Keep red, orange and pink to a minimum.
+- **Main (Thủy, bản mệnh):** black, navy, deep blue, ocean blue.
+- **Supporting (Kim sinh Thủy, Metal feeds Water):** white, silver, light grey.
+- **Sparingly (Thủy sinh Mộc, Water feeds Wood):** green, as a small accent.
+- **Avoid (Thổ khắc Thủy, Earth blocks Water):** yellow, brown, beige, earth tones. Red, orange and pink kept to a minimum.
 
-Suggested direction: white or light-silver background, navy text, a deep-to-ocean blue accent for the timer and progress, silver-grey hairlines. In dark mode, near-black background with blue accent. This fits well with item 2.
+**Plan, one step at a time:**
+
+1. [x] **Colours.** Light: silver background `#f0f3f8`, navy text `#0b1d36`, ocean-blue accent `#0a5fd1`. Dark: near-black navy `#0a0e17`, silver text `#f0f3f8`, blue accent `#3a86f0`. The intensity heatmap is blue; hobby colour choices list blues, navy and silver first and warm colours last (values unchanged, so saved hobbies keep their colour; new hobbies default to blue). Red appears only on destructive actions (Delete, Clear all data, Sign out confirm). The amber "changes waiting" sync dot stays as a status colour. Home Screen icons, manifest and loading screen follow.
+   - [x] **"Time only" legend fix** (Diary → Media): the photo swatch was an empty box, identical to a day with nothing logged. The legend now reads *Photo or video* (filled swatch), *Time only* and *Nothing logged*.
+2. [ ] **Timer:** grouped sections, segmented control, pill buttons, "Log a past session" as a sheet.
+3. [ ] **Diary:** hairline calendar, day detail as a sheet, swipe between months.
+4. [ ] **Stats:** grouped cards, iOS type scale.
+5. [ ] **Settings and sign-in:** iOS Settings-style inset lists.
+6. [ ] **App-wide behaviour:** iOS tab bar with icons, 44 pt targets, motion (respecting reduced motion) and accessibility pass.
 
 ### 4. Stats: report progress against a benchmark per hobby
 
