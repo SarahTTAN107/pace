@@ -2,6 +2,30 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-9 · Edit a logged session from Diary and Timer
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Open (not started)
+
+**Problem:** once a session is logged it can only be deleted, not changed. If you pick the wrong hobby, make a typo in the note, or want to change the rating, the only fix is to delete the session and log it again as a past session.
+
+**Want:** an **Edit** button on a logged session, in two places:
+
+- **Diary:** in a session's expanded view (the day's bottom sheet, after tapping *Expand*), next to Delete.
+- **Timer:** tapping a session in the **Logged today** list opens it, with an Edit button.
+
+**Scope:**
+
+- Edit opens the same bottom sheet as "Log a past session", filled in with the session's values: hobby, date, start time, length, rating (1–5), note, tags, and photos/videos (add or remove).
+- **Save** updates the session in place (same id, not a delete plus a new one); **Cancel**, drag down, tap outside or Esc discards the changes.
+- Totals update right away everywhere the session counts: Logged today, the Diary calendar and day sheet, the month total, and Stats / Milestones.
+- Follows the PACE-7 iOS style: grabber, 44 pt targets, VoiceOver labels ("Edit Guitar session, 45 minutes, 14:00").
+
+**Notes:**
+
+- **Sync:** an edit bumps the session's updated time so last write wins across devices; editing must not bring back a session deleted on another device (respect tombstones). Works offline and syncs later like a new session.
+- **Validation:** same rules as logging a past session (length above zero, not in the future). Changing the date moves the session to that day in the Diary.
+- **Live session:** a session still running in the Timer is not editable here; only logged sessions are.
+
 ## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
 
 **Type:** New feature · **Priority:** High · **Status:** Open (not started)
