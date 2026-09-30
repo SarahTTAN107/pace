@@ -2,6 +2,79 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-12 · Recently deleted: recover sessions, photos and videos for 30 days
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
+
+**Problem:** nothing deleted can be recovered from the app.
+
+- **Deleting a session** saves a marker that blanks the row: hobby, length and note are wiped. Only its photos and videos stay in the bucket, and nothing in the app points to them any more.
+- **Removing a photo or video in an edit** (PACE-11) drops it from the session. The file stays in the bucket, but can only be found by hand in the Supabase dashboard (Storage → `pace-photos` → user id → session id).
+- **No database backups** on Supabase's free plan (daily backups start on Pro), and *Download a copy* holds only the diary text and the small thumbnails still on that phone: no videos or full-size photos.
+
+So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back. Leftover files also use storage space (videos up to 50 MB; the free plan has 1 GB) and linger after a user expects them to be gone.
+
+**Want:** a **Recently deleted** area, like iPhone Photos.
+
+**Scope:**
+
+- **Soft delete.** Deleting a session, or removing a photo or video in an edit, moves it to *Settings → Recently deleted* instead of erasing it. The session keeps its hobby, length, time, rating, tags, note and file paths.
+- **Recently deleted list.** Each item shows what it was (hobby, day, length, thumbnail), when it was deleted and the days left, with **Restore** and **Delete now**, plus **Delete all**. Restoring puts a session back on its day, or a photo/video back on its session (or on its own, if the session is gone too).
+- **Purge after 30 days.** After 30 days, or on *Delete now*, the item and its files are deleted for good: the row becomes a tombstone as today, and the bucket files are removed. That brings the privacy and storage benefits without accidental loss.
+- **Undo toast.** After *Delete* or after saving an edit, the toast offers **Undo** for a few seconds, to catch most mistakes straight away.
+- **Clear all data** stays immediate and permanent (it already deletes the files), and says so.
+- Built in the PACE-7 iOS style: inset list, 44 pt targets, VoiceOver labels ("Tennis, 29 Sep, 45 minutes, deleted 3 days ago, 27 days left").
+
+**Decisions and notes:**
+
+1. **Data model.** Add a `deleted_at timestamptz` (null = live) to `sessions` instead of blanking the row, and keep removed media per session (e.g. a `trashed_media` list of `{ path, removed_at }`), or a small `trash` table. Needs an idempotent migration in `supabase-schema.sql` and a README upgrade note, like the hobby archive column.
+2. **Sync.** A trashed session must not appear in the Diary, Stats or totals on any device, and restore must win over an older trash (last write wins by `updated_at`, as today). The existing `deleted` tombstone stays for the final purge, so older copies of the app still treat purged rows as gone.
+3. **Who purges.** The app can purge on sync when it finds items older than 30 days. That only happens when a device opens; a scheduled Supabase job (pg_cron, or an Edge Function on a schedule) would purge even if nobody opens the app. Decide whether that is needed.
+4. **Storage deletes.** `supabase-schema.sql` already lets each user delete files in their own folder ("own photos delete"), so no policy change is needed. A file whose delete fails is retried on the next sync, not forgotten.
+5. **Offline.** Trashing and restoring work offline and sync later; *Delete now* removes the files once online.
+6. **Older app copies.** A device still on an older version would show trashed sessions as live until updated. Acceptable for a personal app, but note it in the README.
+
+**Shipped:**
+
+- **Delete** in the Diary moves a session to Recently deleted in one tap (no second tap to confirm), with **Undo** in the toast for 6 seconds. Saving an edit also offers **Undo**, which puts the session back exactly as it was, on its old day.
+- **Settings → Recently deleted** shows a count; its sheet lists sessions and photos/videos, newest first, with the day, length, "Deleted 3 days ago · 27 days left", **Restore**, **Delete now** (tap twice) and **Delete all** (tap twice).
+- Photos/videos are listed only for sessions that are not themselves deleted; a deleted session keeps its removed media and erases it with the session. A restored photo goes back at the end of its session.
+- **Data:** `sessions.trashed_at` and `sessions.trashed_media` (migration in `supabase-schema.sql`, README upgrade note). On the phone, trashed sessions stay in `store.sessions` with `trashedAt`, and one filtered view hides them from the Diary, Stats and Timer.
+- **Purge** runs when the app opens and before each sync; bucket deletes wait in a queue on the phone and are retried until they succeed. A photo removed before it was ever uploaded stays on that phone only.
+- **Who purges (decision 3):** the app only, when a device opens. No scheduled Supabase job; items can outlive 30 days if no device opens the app, which is fine for a personal diary.
+
+## PACE-11 · Edit a logged session from Diary and Timer
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
+
+**Problem:** once a session is logged it can only be deleted, not changed. If you pick the wrong hobby, make a typo in the note, or want to change the rating, the only fix is to delete the session and log it again as a past session.
+
+**Want:** an **Edit** button on a logged session, in two places:
+
+- **Diary:** in a session's expanded view (the day's bottom sheet, after tapping *Expand*), next to Delete.
+- **Timer:** tapping a session in the **Logged today** list opens it, with an Edit button.
+
+**Scope:**
+
+- Edit opens the same bottom sheet as "Log a past session", filled in with the session's values: hobby, date, start time, length, rating (1–5), note, tags, and photos/videos (add or remove).
+- **Save** updates the session in place (same id, not a delete plus a new one); **Cancel**, drag down, tap outside or Esc discards the changes.
+- Totals update right away everywhere the session counts: Logged today, the Diary calendar and day sheet, the month total, and Stats / Milestones.
+- Follows the PACE-7 iOS style: grabber, 44 pt targets, VoiceOver labels ("Edit Guitar session, 45 minutes, 14:00").
+
+**Notes:**
+
+- **Sync:** an edit bumps the session's updated time so last write wins across devices; editing must not bring back a session deleted on another device (respect tombstones). Works offline and syncs later like a new session.
+- **Validation:** same rules as logging a past session (length above zero, not in the future). Changing the date moves the session to that day in the Diary.
+- **Live session:** a session still running in the Timer is not editable here; only logged sessions are.
+
+**Shipped:**
+
+- **Timer:** each row under *Logged today* is a button (name, length, start time, *Edit*) that opens the editor.
+- **Diary:** *Edit* sits between *Expand / Read note* and *Delete* in the day sheet, and next to *Done* in the expanded photo/note view.
+- **Edit session sheet:** hobby (active hobbies, plus the session's own if archived), day, start hour, hours/minutes steppers, rating 1–5 (tap the selected number again to clear), tags, note, and photos/videos (tap to remove, + to add). Save, or Cancel / drag down / tap outside / Esc to throw the draft away.
+- **Sync:** sessions are matched by id on any day, so a move is not a duplicate; a session deleted on another device is remembered as a tombstone and stays deleted; photo bytes and paths are matched by picture or path, not by position; a new upload never reuses a file name a kept photo already has.
+- Removed photos/videos go to Recently deleted (PACE-12).
+
 ## PACE-10 · Dark mode: status bar stays white
 
 **Type:** Improvement · **Status:** Done ([#20](https://github.com/SarahTTAN107/pace/pull/20))
