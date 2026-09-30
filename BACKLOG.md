@@ -4,7 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-9 · Edit a logged session from Diary and Timer
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Open (not started)
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
 
 **Problem:** once a session is logged it can only be deleted, not changed. If you pick the wrong hobby, make a typo in the note, or want to change the rating, the only fix is to delete the session and log it again as a past session.
 
@@ -25,6 +25,14 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 - **Sync:** an edit bumps the session's updated time so last write wins across devices; editing must not bring back a session deleted on another device (respect tombstones). Works offline and syncs later like a new session.
 - **Validation:** same rules as logging a past session (length above zero, not in the future). Changing the date moves the session to that day in the Diary.
 - **Live session:** a session still running in the Timer is not editable here; only logged sessions are.
+
+**Shipped:**
+
+- **Timer:** each row under *Logged today* is a button (name, length, start time, *Edit*) that opens the editor.
+- **Diary:** *Edit* sits between *Expand / Read note* and *Delete* in the day sheet, and next to *Done* in the expanded photo/note view.
+- **Edit session sheet:** hobby (active hobbies, plus the session's own if archived), day, start hour, hours/minutes steppers, rating 1–5 (tap the selected number again to clear), tags, note, and photos/videos (tap to remove, + to add). Save, or Cancel / drag down / tap outside / Esc to throw the draft away.
+- **Sync:** sessions are matched by id on any day, so a move is not a duplicate; a session deleted on another device is remembered as a tombstone and stays deleted; photo bytes and paths are matched by picture or path, not by position; a new upload never reuses a file name a kept photo already has.
+- Removed photos/videos stay in the bucket, as they do when a whole session is deleted.
 
 ## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
 
