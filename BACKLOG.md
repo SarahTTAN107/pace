@@ -2,6 +2,14 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-9 · Settings: rename "Default heatmap" to "Default Diary Mode"
+
+**Type:** Improvement · **Status:** Done ([#19](https://github.com/SarahTTAN107/pace/pull/19))
+
+**Problem:** the Settings row that picks how the diary colours each day (Intensity / Blend / Media) was labelled *Default heatmap*, which does not match the Diary's own mode names.
+
+**Done:** the label now reads *Default Diary Mode*. The caption and options are unchanged.
+
 ## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
 
 **Type:** New feature · **Priority:** High · **Status:** Open (not started)
