@@ -4,7 +4,7 @@ One list for all open work. When an item ships, move it to **Done** with the PR 
 
 **Priority:** **P0** highest, do first · **P1** high · **P2** core feature is wrong or missing · **P3** polish.
 
-_Last reviewed 2026-09-29._
+_Last reviewed 2026-09-30._
 
 ## Order of work
 
@@ -14,7 +14,9 @@ _Last reviewed 2026-09-29._
 | 2 | PACE-10 | P1 | Brand | Simpler, Nordic-style logo | Open, alongside PACE-7 | S |
 | 3 | PACE-1 | P1 | Deploy | Testers in a private window land on a Vercel login page | Open: settings change + README note | S |
 | 4 | PACE-2 | P1 | Auth | Invited testers can't sign in | Fix ready in PR #9, needs merge + SQL run | S |
-| 5 | PACE-8 | P2 | Stats | Progress against a benchmark per hobby | **Needs your decision** on targets | L |
+| 5 | PACE-12 | P2 | Timer | "Log a past session": pick From → To times instead of a length + hour slider | Open | M |
+| 6 | PACE-11 | P2 | Timer | Edit a logged session (hobby, caption, photos, time) | Open, after PACE-12 | M |
+| 7 | PACE-8 | P2 | Stats | Progress against a benchmark per hobby | **Needs your decision** on targets | L |
 
 PACE-6 (Water palette) and PACE-9 ("Time only" legend) are now steps inside PACE-7.
 
@@ -22,6 +24,7 @@ PACE-6 (Water palette) and PACE-9 ("Time only" legend) are now steps inside PACE
 - **PACE-7 is the top priority.** Every screen and interaction gets redone to Apple's standards, starting with the colour palette, since every screen uses it.
 - **PACE-10 goes with it:** the new logo should use the same palette and style, so both land together.
 - **PACE-1 and PACE-2 are settings and merge jobs, not app code.** They take minutes and can happen any time, in parallel.
+- **PACE-12 before PACE-11:** the edit screen reuses the past-session form, so the From → To picker gets built once and used in both. Build both as Apple-style sheets (PACE-7).
 - **PACE-8 comes after the redesign,** so the new Stats screen is built once, in the new style. It still needs your target decision.
 
 ---
@@ -118,6 +121,38 @@ A friend opening the app in a private window gets Vercel's "Log in" page. This c
 ---
 
 ## P2 — core features
+
+### PACE-12 · "Log a past session": From → To times
+
+**Today:** you set the length with Hours / Minutes steppers (or 15m–90m chips), then drag a slider for "Started around", which only picks a whole hour (00:00–23:00). You can't say "14:20 to 15:05".
+
+**Want:** two time pickers, **From** and **To** (native iOS time wheels, 5-minute steps), under the date. The length is worked out and shown ("45m"), not entered.
+
+**Details:**
+- Default: To = now rounded to 5 minutes, From = To minus 45m (or your last length for that hobby).
+- If To is earlier than From, treat it as crossing midnight and show "ends next day", or block it. Suggest: allow it, and log the session on the From date.
+- Remove the length steppers/chips and the hour slider. Optional: keep the chips as shortcuts that set From = To minus that length.
+- Block zero-length or future sessions, with a plain message.
+
+**Data:** sessions currently store `day_key`, `minutes` and a whole `hour`. Add a `start_min` column (minutes after midnight) in `supabase-schema.sql`, with an upgrade snippet in the README. Keep writing `hour` so older app versions still work. Timed sessions (Clock in / Countdown) should save their real start time too.
+
+### PACE-11 · Timer: edit a logged session
+
+**Today:** the Timer tab's "Logged today" list is read-only (colour, hobby, length). Once a session is saved, you can only delete it in the Diary, not fix a mistake.
+
+**Want:** tap a session to open an **Edit session** sheet where you can change:
+- **Hobby:** pick another hobby.
+- **Caption:** the note.
+- **Photos & videos:** add and remove, same grid as the past-session form.
+- **Time logged:** date and From → To (PACE-12), or length for older sessions without a start time.
+
+Plus **Save**, **Cancel**, and **Delete session** at the bottom (with confirmation).
+
+**Details:**
+- Reuse the past-session form in edit mode rather than building a second form.
+- Show the same Edit action from the Diary's session view, so edits work for any day, not just today.
+- Sync: stamp `updated_at` on save so other devices pick up the change. Removed photos should also be deleted from the `pace-photos` bucket and IndexedDB.
+- If the session's photos are still uploading, keep them safe while editing.
 
 ### PACE-8 · Stats: progress against a benchmark per hobby
 
