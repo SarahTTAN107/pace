@@ -29,10 +29,16 @@ create table if not exists public.sessions (
   note        text        not null default '',
   tags        text[]      not null default '{}',
   photo_paths text[]      not null default '{}',
+  trashed_at  timestamptz,                   -- set while the session is in Recently deleted
+  trashed_media jsonb     not null default '[]'::jsonb, -- photos/videos removed from it, kept 30 days
   deleted     boolean     not null default false,
   updated_at  timestamptz not null default now(),
   primary key (user_id, id)
 );
+
+-- Recently deleted (added after the first release); safe to re-run.
+alter table public.sessions add column if not exists trashed_at timestamptz;
+alter table public.sessions add column if not exists trashed_media jsonb not null default '[]'::jsonb;
 
 create index if not exists sessions_user_day_idx on public.sessions (user_id, day_key);
 

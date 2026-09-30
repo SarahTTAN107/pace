@@ -25,6 +25,16 @@ To open sign-up to anyone with the link, set `allowSignup: true` in the `window.
 
 **Photo/video viewer and video support:** no SQL needed. Deploy `vercel.json` together with `index.html`: its Content-Security-Policy gains `media-src`, and without it videos will not play. If you set a file size limit or allowed MIME types on the `pace-photos` bucket, allow `video/*` and at least 50 MB.
 
+**Recently deleted:** run this once **before** deploying the `index.html` that adds Recently deleted (re-running the whole `supabase-schema.sql` also works):
+
+```sql
+alter table public.sessions add column if not exists trashed_at timestamptz;
+alter table public.sessions add column if not exists trashed_media jsonb not null default '[]'::jsonb;
+notify pgrst, 'reload schema';
+```
+
+Until the columns exist, sync stops with *"Supabase needs the Recently deleted columns"*; nothing on the phone is lost. A device still running an older copy of the app shows sessions in Recently deleted as normal sessions until it updates.
+
 Run this once **before** deploying a new `index.html` that adds the hobby archive (re-running the whole `supabase-schema.sql` also works — it is idempotent):
 
 ```sql
@@ -77,6 +87,7 @@ What protects the data, in order of how much it matters:
 - **Syncs on open, on resume from the background, every 5 minutes while open, 1.5 s after any change** (sessions, hobbies, colours, theme, custom tags), **when the connection returns, and as the app goes to the background** if anything is waiting. A change made mid-sync queues a follow-up sync instead of being skipped. **Sync now** is still in Settings.
 - **Pulls are paginated**, so diaries past 1,000 rows (tombstones count) restore completely.
 - **Defaults never overwrite the cloud.** A fresh or restored phone adopts your cloud theme, hobby names/colours and custom tags; untouched defaults only upload when the cloud has none.
+- **Deleting is recoverable for 30 days.** Deleting a session, or removing a photo or video while editing one, moves it to **Settings → Recently deleted**, which syncs like any edit (a restore on one device wins over an older delete on another). After 30 days, or on **Delete now**, the row becomes a tombstone and its files are removed from the bucket; a file delete that fails is retried on the next sync. **Clear all data** skips Recently deleted and cannot be undone.
 - **Custom tags sync** (stored inside `prefs.data.customTags`) and merge as a set across devices.
 - **Last write wins per row**, compared on `updated_at` — and enforced by a Postgres trigger, so a stale client cannot overwrite a newer row even if it tries.
 - **Archived hobbies** sync as `hobbies.archived = true`. They leave the timer picker but stay in the diary, stats and "Split by hobby" with their name and colour. Restore them from **You → Archived**, or type the same name into Add a hobby. Only an archived hobby can be deleted outright (two taps), and deleting it leaves its past sessions unlabelled.

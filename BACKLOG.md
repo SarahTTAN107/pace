@@ -4,7 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-10 · Recently deleted: recover sessions, photos and videos for 30 days
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Open (not started)
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
 
 **Problem:** nothing deleted can be recovered from the app.
 
@@ -33,6 +33,15 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 4. **Storage deletes.** `supabase-schema.sql` already lets each user delete files in their own folder ("own photos delete"), so no policy change is needed. A file whose delete fails is retried on the next sync, not forgotten.
 5. **Offline.** Trashing and restoring work offline and sync later; *Delete now* removes the files once online.
 6. **Older app copies.** A device still on an older version would show trashed sessions as live until updated. Acceptable for a personal app, but note it in the README.
+
+**Shipped:**
+
+- **Delete** in the Diary moves a session to Recently deleted in one tap (no second tap to confirm), with **Undo** in the toast for 6 seconds. Saving an edit also offers **Undo**, which puts the session back exactly as it was, on its old day.
+- **Settings → Recently deleted** shows a count; its sheet lists sessions and photos/videos, newest first, with the day, length, "Deleted 3 days ago · 27 days left", **Restore**, **Delete now** (tap twice) and **Delete all** (tap twice).
+- Photos/videos are listed only for sessions that are not themselves deleted; a deleted session keeps its removed media and erases it with the session. A restored photo goes back at the end of its session.
+- **Data:** `sessions.trashed_at` and `sessions.trashed_media` (migration in `supabase-schema.sql`, README upgrade note). On the phone, trashed sessions stay in `store.sessions` with `trashedAt`, and one filtered view hides them from the Diary, Stats and Timer.
+- **Purge** runs when the app opens and before each sync; bucket deletes wait in a queue on the phone and are retried until they succeed. A photo removed before it was ever uploaded stays on that phone only.
+- **Who purges (decision 3):** the app only, when a device opens. No scheduled Supabase job; items can outlive 30 days if no device opens the app, which is fine for a personal diary.
 
 ## PACE-9 · Edit a logged session from Diary and Timer
 
@@ -64,7 +73,7 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 - **Diary:** *Edit* sits between *Expand / Read note* and *Delete* in the day sheet, and next to *Done* in the expanded photo/note view.
 - **Edit session sheet:** hobby (active hobbies, plus the session's own if archived), day, start hour, hours/minutes steppers, rating 1–5 (tap the selected number again to clear), tags, note, and photos/videos (tap to remove, + to add). Save, or Cancel / drag down / tap outside / Esc to throw the draft away.
 - **Sync:** sessions are matched by id on any day, so a move is not a duplicate; a session deleted on another device is remembered as a tombstone and stays deleted; photo bytes and paths are matched by picture or path, not by position; a new upload never reuses a file name a kept photo already has.
-- Removed photos/videos stay in the bucket, as they do when a whole session is deleted.
+- Removed photos/videos go to Recently deleted (PACE-10).
 
 ## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
 
