@@ -2,6 +2,21 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-9 · Slide to confirm "Clear all data"
+
+**Type:** Improvement · **Priority:** Medium · **Status:** Done ([#18](https://github.com/SarahTTAN107/pace/pull/18))
+
+**Problem:** in You → Your data, tapping **Clear all data** armed a second tap that erased the whole diary, so two quick taps could wipe everything.
+
+**Done:**
+
+- The first tap shows a red slider, *Slide to erase everything*, and a **Keep my data** button. Nothing is erased yet.
+- The knob must be dragged all the way across to erase. A short or interrupted drag springs back and erases nothing.
+- **Keep my data**, Esc or switching tabs backs out.
+- Keyboard and VoiceOver: the knob is a slider; each arrow key press moves it a quarter of the way, and reaching the end erases.
+
+**Follow-up (not done):** *Discard session* on the Session complete sheet still uses "tap again". It could use the same slider.
+
 ## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
 
 **Type:** New feature · **Priority:** High · **Status:** Open (not started)
