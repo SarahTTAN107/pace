@@ -2,14 +2,14 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
-## PACE-10 · Recently deleted: recover sessions, photos and videos for 30 days
+## PACE-12 · Recently deleted: recover sessions, photos and videos for 30 days
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
 
 **Problem:** nothing deleted can be recovered from the app.
 
 - **Deleting a session** saves a marker that blanks the row: hobby, length and note are wiped. Only its photos and videos stay in the bucket, and nothing in the app points to them any more.
-- **Removing a photo or video in an edit** (PACE-9) drops it from the session. The file stays in the bucket, but can only be found by hand in the Supabase dashboard (Storage → `pace-photos` → user id → session id).
+- **Removing a photo or video in an edit** (PACE-11) drops it from the session. The file stays in the bucket, but can only be found by hand in the Supabase dashboard (Storage → `pace-photos` → user id → session id).
 - **No database backups** on Supabase's free plan (daily backups start on Pro), and *Download a copy* holds only the diary text and the small thumbnails still on that phone: no videos or full-size photos.
 
 So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back. Leftover files also use storage space (videos up to 50 MB; the free plan has 1 GB) and linger after a user expects them to be gone.
@@ -43,7 +43,7 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 - **Purge** runs when the app opens and before each sync; bucket deletes wait in a queue on the phone and are retried until they succeed. A photo removed before it was ever uploaded stays on that phone only.
 - **Who purges (decision 3):** the app only, when a device opens. No scheduled Supabase job; items can outlive 30 days if no device opens the app, which is fine for a personal diary.
 
-## PACE-9 · Edit a logged session from Diary and Timer
+## PACE-11 · Edit a logged session from Diary and Timer
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
 
@@ -73,7 +73,23 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 - **Diary:** *Edit* sits between *Expand / Read note* and *Delete* in the day sheet, and next to *Done* in the expanded photo/note view.
 - **Edit session sheet:** hobby (active hobbies, plus the session's own if archived), day, start hour, hours/minutes steppers, rating 1–5 (tap the selected number again to clear), tags, note, and photos/videos (tap to remove, + to add). Save, or Cancel / drag down / tap outside / Esc to throw the draft away.
 - **Sync:** sessions are matched by id on any day, so a move is not a duplicate; a session deleted on another device is remembered as a tombstone and stays deleted; photo bytes and paths are matched by picture or path, not by position; a new upload never reuses a file name a kept photo already has.
-- Removed photos/videos go to Recently deleted (PACE-10).
+- Removed photos/videos go to Recently deleted (PACE-12).
+
+## PACE-10 · Dark mode: status bar stays white
+
+**Type:** Improvement · **Status:** Done ([#20](https://github.com/SarahTTAN107/pace/pull/20))
+
+**Problem:** with the app theme set to Dark, the iPhone status-bar strip at the top stayed light, because its colour came from a fixed `theme-color` of `#f0f3f8`.
+
+**Done:** the `theme-color` and page background now follow the theme (`#0a0e17` in Dark, `#f0f3f8` in Light). They update as soon as the theme is switched or synced, and are set from the saved theme before the app renders, so a dark launch shows no white strip.
+
+## PACE-9 · Settings: rename "Default heatmap" to "Default Diary Mode"
+
+**Type:** Improvement · **Status:** Done ([#19](https://github.com/SarahTTAN107/pace/pull/19))
+
+**Problem:** the Settings row that picks how the diary colours each day (Intensity / Blend / Media) was labelled *Default heatmap*, which does not match the Diary's own mode names.
+
+**Done:** the label now reads *Default Diary Mode*. The caption and options are unchanged.
 
 ## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
 
