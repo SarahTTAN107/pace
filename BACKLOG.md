@@ -4,7 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-17 · Diary: media takes a long while to load
 
-**Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** In review ([#33](https://github.com/SarahTTAN107/pace/pull/33))
+**Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** In progress ([#33](https://github.com/SarahTTAN107/pace/pull/33)): quick fix done; lasting fix next, in the same PR. Do not merge until it ships.
 
 **Problem:** in the Diary, photo and video thumbnails take a long time to appear, especially in Media mode. The phone keeps only recent diary copies of uploaded photos and downloads the rest from Supabase when they are needed. That download was slow for four reasons:
 
@@ -16,7 +16,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
    - Thumbnails the app drops to save phone space (past 3 MB, or when Safari's ~5 MB is full) were downloaded again from scratch.
    - Tapping a day while its month was loading downloaded the same files twice.
 
-**Fix:**
+**Quick fix (done):**
 
 - **One signing request** covers every missing file in the visible months (up to 100 files per request).
 - **Six downloads at a time** instead of one.
@@ -26,7 +26,25 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 - **Loads at launch:** with Media saved as the Default Diary Mode, loading starts after the first sync.
 - **Measured** with a stubbed Supabase (20 days, 40 photos): 1 signing request instead of 20, 6 downloads at a time instead of 1, and 1 save instead of 20. Dropped thumbnails refilled with no network calls.
 
-**Open:** near Safari's ~5 MB limit, older thumbnails are still dropped from phone storage. They come back from memory within a session but are downloaded again after a restart. A lasting fix stores diary copies outside the main store (e.g. IndexedDB, as full-size files already are). The full-size viewer is not affected; it streams from Supabase.
+**Why the quick fix is not enough:** the diary copies themselves live in the wrong place. Each photo's ~780px diary copy (JPEG quality 0.62, saved as base64 text, roughly 100–150 KB) sits inside the one localStorage store with every session, which Safari caps at ~5 MB. That is only a few dozen photos. Past that, the app has to keep throwing copies away (`evictPhotos`: anything older than 30 days once the store passes 3 MB, then older than 7 days, then all of them when a save fails), and every launch downloads them again. Every save also rewrites the whole store, photos included, so the more photos are kept, the slower every tap that saves gets.
+
+**Lasting fix (planned):** keep diary copies in IndexedDB, next to the full-size photos and videos already waiting there, and keep only references in localStorage.
+
+- **Where copies live:** a new `thumbs` store in the existing `pace-media` IndexedDB database (version 1 → 2), holding image bytes, not base64 text (a third smaller). Uploaded copies are keyed by their bucket path; not-yet-uploaded ones by a local id that is re-keyed to the path after upload.
+- **What localStorage keeps:** sessions, `photoPaths` and the local id per slot. No picture bytes, so the store stays a few hundred KB however many photos there are, and saves stay fast.
+- **Showing a copy:** the diary asks for the months on screen, reads those copies from IndexedDB in one transaction and shows them through object URLs kept in memory. Only files missing from IndexedDB go to Supabase, using the quick fix's batched, parallel download, and are written to IndexedDB as they arrive.
+- **One-time move:** on the first launch of the new version, existing base64 copies in localStorage are written to IndexedDB, then removed from the store. If IndexedDB fails, they stay where they are, so nothing is lost.
+- **Removing copies:** deleting a session or media item, emptying Recently deleted (PACE-12), the erased-session sweep (PACE-16) and *Clear everything* also delete the matching copies. No routine eviction: IndexedDB allows far more than 5 MB, and the app already asks for persistent storage. A size cap (e.g. 200 MB, oldest viewed first) only if one ever turns out to be needed.
+- **Media days before copies arrive:** the calendar marks a day as *Photo or video* from `photoPaths`, not from loaded bytes, so Media mode shows the right days at once, with a placeholder until the picture loads.
+- **Smaller copies for calendar cells (optional):** cells are about 50 px, but each one decodes a 780px image. A ~160px copy made on the phone after download would make Media mode lighter still. Decide after measuring.
+- **Retire the workarounds:** `evictPhotos`, the 3 MB rule in sync and the "Phone storage full" path for photos are no longer needed. `ensurePhotos`/`fillPhotos` from the quick fix become the IndexedDB loader.
+
+**Risks and checks:**
+
+- If Safari clears website data (private browsing, or Safari tabs unused for 7 days; the Home Screen app is not affected), IndexedDB empties. The bucket is the real copy, so the pictures download again. Nothing is lost.
+- A photo not yet uploaded exists only on this phone, in IndexedDB rather than localStorage. Same risk as full-size photos and videos today. It ends at the next sync.
+- An older copy of the app on another device keeps working: nothing synced changes (`photo_paths` and the bucket files stay as they are).
+- Test on iPhone Safari and the Home Screen app: a diary with 200+ photos, launch speed, scrolling back a year in Media mode, offline launch, the move from an existing store, and delete/restore/erase cleaning up copies.
 
 ## PACE-16 · Storage: see what fills it, clear files of erased sessions
 
