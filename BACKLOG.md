@@ -4,7 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-16 · Storage: see what fills it, clear files of erased sessions
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done ([#27](https://github.com/SarahTTAN107/pace/pull/27))
 
 **Problem:** 31% of the free plan's storage is used, with no way to see what by, and some of it is files nothing points at: deletes made before Recently deleted (PACE-12) blanked the row and left the photos and videos in the bucket.
 
