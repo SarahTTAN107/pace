@@ -2,6 +2,29 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-14 · Diary: pick one hobby in each mode
+
+**Type:** New feature · **Tag:** feature · **Priority:** Medium · **Status:** Open (not started)
+
+**Problem:** the Diary calendar always shows all hobbies together. In Intensity, Blend and Media you cannot see how a single hobby has progressed over time, e.g. "how often did I play Tennis this summer?".
+
+**Want:** in each Diary mode (Intensity, Blend, Media), a way to pick one hobby, so the calendar shows only that hobby's sessions and you can follow its progress month by month.
+
+**Scope:**
+
+- **Hobby picker** above or next to the Intensity / Blend / Media control: *All hobbies* (default) plus each hobby with its emoji and colour (PACE-13). Archived hobbies are listed too, after the active ones, so their history can still be viewed.
+- **Intensity:** day shading counts only the chosen hobby's time. Consider using the hobby's colour for the scale instead of the default blue.
+- **Blend:** with one hobby picked, each day shows just that hobby's colour (in effect a single-hobby intensity); the legend shows only that hobby.
+- **Media:** only days where the chosen hobby has a photo or video count as *Photo or video*; days with only that hobby's time are *Time only*.
+- **This month** total, the day sheet and VoiceOver day labels follow the filter ("20 September, Tennis, 45m in 1 session"). The day sheet could offer *Show all hobbies* to see the full day.
+- **Stays picked** while swiping between months and switching modes; resets to *All hobbies* on app launch (or remember it per device; decide).
+- Built in the PACE-7 iOS style: 44 pt targets, VoiceOver label on the picker ("Showing Tennis").
+
+**Notes:**
+
+- Filter on the existing visible-sessions view (which already hides trashed sessions, PACE-12), so no data model or sync change is needed.
+- Overlaps with PACE-8 (per-hobby progress in Milestones); this is the calendar view of the same question.
+
 ## PACE-13 · Emojis for hobbies, not just colour dots
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Low · **Status:** Done
