@@ -2,6 +2,21 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-14 · Diary: scroll up through history, jump back to today
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
+
+**Problem:** the Diary showed one month at a time. Looking back meant tapping ‹ or swiping sideways once per month, so revisiting history was slow and easy to skip.
+
+**Shipped:**
+
+- **One scroll.** The Diary is a vertical list of months, oldest at the top and this month at the bottom. It opens on this month; scrolling up reads back through earlier months. The month arrows and the sideways swipe are gone (replacing PACE-7 item 3's arrows and swipe).
+- **Loads as you go.** Six months render at first; six more load before the top is reached, without the view jumping. It stops at the first month with a session (never fewer than three months) and says "Your diary starts in …".
+- **Each month** has its own total ("12h 30m on 8 days"), and in Blend its own hobby legend. The Intensity and Media legends show once, under this month.
+- **Pinned header.** The Intensity / Blend / Media switch and the weekday letters stay at the top while months scroll under them.
+- **Back to today.** A floating **↓ Today** button appears once this month scrolls out of view and scrolls back to it. Tapping the Diary tab while already in it does the same.
+- Switching tabs now starts other tabs at the top, so the long diary scroll does not carry over.
+
 ## PACE-13 · Emojis for hobbies, not just colour dots
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Low · **Status:** Done
