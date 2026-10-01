@@ -2,6 +2,32 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-17 · Diary: media takes a long while to load
+
+**Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** In review ([#33](https://github.com/SarahTTAN107/pace/pull/33))
+
+**Problem:** in the Diary, photo and video thumbnails take a long time to appear, especially in Media mode. The phone keeps only recent diary copies of uploaded photos and downloads the rest from Supabase when they are needed. That download was slow for four reasons:
+
+1. **One request per day.** Switching to Media asked for every day of the 6 visible months separately (about 180 calls). Each day with photos made its own signing request to Supabase.
+2. **One photo at a time.** Within a day, each file was signed, downloaded and converted before the next one started.
+3. **The whole store was saved after every day.** Each finished day copied the entire phone store, photos included, and wrote it to phone storage. That meant several MB written over and over, and the app stuttered while it ran.
+4. **Nothing loaded on its own, and nothing was remembered.**
+   - With Media as the saved Default Diary Mode (PACE-9), nothing downloaded at launch until something was tapped.
+   - Thumbnails the app drops to save phone space (past 3 MB, or when Safari's ~5 MB is full) were downloaded again from scratch.
+   - Tapping a day while its month was loading downloaded the same files twice.
+
+**Fix:**
+
+- **One signing request** covers every missing file in the visible months (up to 100 files per request).
+- **Six downloads at a time** instead of one.
+- **One save per batch**, and none when nothing changed. Thumbnails are matched to sessions by file path, so a session edited during the download still gets the right picture.
+- **No double downloads:** a file already on its way is not requested again.
+- **Kept in memory:** downloaded thumbnails stay in memory, so ones the app drops refill without going online.
+- **Loads at launch:** with Media saved as the Default Diary Mode, loading starts after the first sync.
+- **Measured** with a stubbed Supabase (20 days, 40 photos): 1 signing request instead of 20, 6 downloads at a time instead of 1, and 1 save instead of 20. Dropped thumbnails refilled with no network calls.
+
+**Open:** near Safari's ~5 MB limit, older thumbnails are still dropped from phone storage. They come back from memory within a session but are downloaded again after a restart. A lasting fix stores diary copies outside the main store (e.g. IndexedDB, as full-size files already are). The full-size viewer is not affected; it streams from Supabase.
+
 ## PACE-16 · Storage: see what fills it, clear files of erased sessions
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done ([#27](https://github.com/SarahTTAN107/pace/pull/27))
