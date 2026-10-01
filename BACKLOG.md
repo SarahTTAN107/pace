@@ -2,7 +2,7 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
-## PACE-14 · Diary: pick one hobby in each mode
+## PACE-15 · Diary: pick one hobby in each mode
 
 **Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Done ([#25](https://github.com/SarahTTAN107/pace/pull/25))
 
@@ -17,8 +17,8 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 - **Intensity:** day shading counts only the chosen hobby's time. Consider using the hobby's colour for the scale instead of the default blue.
 - **Blend:** with one hobby picked, each day shows just that hobby's colour (in effect a single-hobby intensity); the legend shows only that hobby.
 - **Media:** only days where the chosen hobby has a photo or video count as *Photo or video*; days with only that hobby's time are *Time only*.
-- **This month** total, the day sheet and VoiceOver day labels follow the filter ("20 September, Tennis, 45m in 1 session"). The day sheet could offer *Show all hobbies* to see the full day.
-- **Stays picked** while swiping between months and switching modes; resets to *All hobbies* on app launch (or remember it per device; decide).
+- **Month totals**, the day sheet and VoiceOver day labels follow the filter ("20 September, Tennis, 45m in 1 session"). The day sheet could offer *Show all hobbies* to see the full day.
+- **Stays picked** while moving between months and switching modes; resets to *All hobbies* on app launch (or remember it per device; decide).
 - Built in the PACE-7 iOS style: 44 pt targets, VoiceOver label on the picker ("Showing Tennis").
 
 **Notes:**
@@ -28,13 +28,28 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 **Shipped:**
 
-- **Hobby chips** under the Intensity / Blend / Media control, scrolling sideways: *All hobbies*, then the active hobbies, then archived hobbies that have sessions. A picked chip fills with the hobby's colour (*All hobbies* in blue).
+- **Hobby chips** in the Diary's pinned header, between the Intensity / Blend / Media switch and the weekday letters, scrolling sideways: *All hobbies*, then the active hobbies, then archived hobbies that have sessions. A picked chip fills with the hobby's colour (*All hobbies* in blue).
 - **Tap the picked hobby again** to go back to *All hobbies*. A hobby deleted while picked also falls back to *All hobbies*.
-- **Intensity** shades days in the picked hobby's colour, legend included. **Blend** shows only that hobby's colour, and its legend lists only that hobby. **Media** counts only that hobby's photos and videos.
-- **Days without the picked hobby** look empty and can't be tapped. The month total reads e.g. *🎾 Tennis this month* and counts only that hobby. VoiceOver day labels name the hobby ("20 September, Tennis, 45m").
+- **Intensity** shades days in the picked hobby's colour, legend included. **Blend** shows only that hobby's colour, and each month's legend lists only that hobby. **Media** counts only that hobby's photos and videos.
+- **Every month in the scroll (PACE-14)** follows the filter: days without the hobby look empty and can't be tapped, and each month's total ("7h 45m on 10 days") counts only that hobby, so scrolling up shows how it grew. VoiceOver day labels name the hobby ("20 September, Tennis, 45m").
 - **Day sheet** lists only the picked hobby's sessions, with the hobby in the subtitle. When the day has other sessions it shows "1 other session that day · **Show all hobbies**", which shows the whole day.
-- **Stays picked** while changing month or mode. It is not saved, so each launch opens on *All hobbies* (decision on the open point above).
+- **Stays picked** while scrolling and changing mode. It is not saved, so each launch opens on *All hobbies* (decision on the open point above).
 - No data model, sync or README change. Mockup: https://claude.ai/artifact/6zUMGHAvPZ4NdGwTc9MFAY
+
+## PACE-14 · Diary: scroll up through history, jump back to today
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
+
+**Problem:** the Diary showed one month at a time. Looking back meant tapping ‹ or swiping sideways once per month, so revisiting history was slow and easy to skip.
+
+**Shipped:**
+
+- **One scroll.** The Diary is a vertical list of months, oldest at the top and this month at the bottom. It opens on this month; scrolling up reads back through earlier months. The month arrows and the sideways swipe are gone (replacing PACE-7 item 3's arrows and swipe).
+- **Loads as you go.** Six months render at first; six more load before the top is reached, without the view jumping. It stops at the first month with a session (never fewer than three months) and says "Your diary starts in …".
+- **Each month** has its own total ("12h 30m on 8 days"), and in Blend its own hobby legend. The Intensity and Media legends show once, under this month.
+- **Pinned header.** The Intensity / Blend / Media switch and the weekday letters stay at the top while months scroll under them.
+- **Back to today.** A floating **↓ Today** button appears once this month scrolls out of view and scrolls back to it. Tapping the Diary tab while already in it does the same.
+- Switching tabs now starts other tabs at the top, so the long diary scroll does not carry over.
 
 ## PACE-13 · Emojis for hobbies, not just colour dots
 
