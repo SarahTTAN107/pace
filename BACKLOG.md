@@ -2,6 +2,40 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-15 · Diary: pick one hobby in each mode
+
+**Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Done ([#25](https://github.com/SarahTTAN107/pace/pull/25))
+
+**Problem:** the Diary calendar always shows all hobbies together. In Intensity, Blend and Media you cannot see how a single hobby has progressed over time, e.g. "how often did I play Tennis this summer?".
+
+**Want:** in each Diary mode (Intensity, Blend, Media), a way to pick one hobby, so the calendar shows only that hobby's sessions and you can follow its progress month by month.
+
+**Scope:**
+
+- **Hobby picker** above or next to the Intensity / Blend / Media control: *All hobbies* (default) plus each hobby with its emoji and colour (PACE-13). Archived hobbies are listed too, after the active ones, so their history can still be viewed.
+- **Tap again to deselect:** tapping the hobby that is already picked deselects it and goes back to *All hobbies*. With no hobby picked, the Diary always shows *All hobbies*.
+- **Intensity:** day shading counts only the chosen hobby's time. Consider using the hobby's colour for the scale instead of the default blue.
+- **Blend:** with one hobby picked, each day shows just that hobby's colour (in effect a single-hobby intensity); the legend shows only that hobby.
+- **Media:** only days where the chosen hobby has a photo or video count as *Photo or video*; days with only that hobby's time are *Time only*.
+- **Month totals**, the day sheet and VoiceOver day labels follow the filter ("20 September, Tennis, 45m in 1 session"). The day sheet could offer *Show all hobbies* to see the full day.
+- **Stays picked** while moving between months and switching modes; resets to *All hobbies* on app launch (or remember it per device; decide).
+- Built in the PACE-7 iOS style: 44 pt targets, VoiceOver label on the picker ("Showing Tennis").
+
+**Notes:**
+
+- Filter on the existing visible-sessions view (which already hides trashed sessions, PACE-12), so no data model or sync change is needed.
+- Overlaps with PACE-8 (per-hobby progress in Milestones); this is the calendar view of the same question.
+
+**Shipped:**
+
+- **Hobby chips** in the Diary's pinned header, between the Intensity / Blend / Media switch and the weekday letters, scrolling sideways: *All hobbies*, then the active hobbies, then archived hobbies that have sessions. A picked chip fills with the hobby's colour (*All hobbies* in blue).
+- **Tap the picked hobby again** to go back to *All hobbies*. A hobby deleted while picked also falls back to *All hobbies*.
+- **Intensity** shades days in the picked hobby's colour, legend included. **Blend** shows only that hobby's colour, and each month's legend lists only that hobby. **Media** counts only that hobby's photos and videos.
+- **Every month in the scroll (PACE-14)** follows the filter: days without the hobby look empty and can't be tapped, and each month's total ("7h 45m on 10 days") counts only that hobby, so scrolling up shows how it grew. VoiceOver day labels name the hobby ("20 September, Tennis, 45m").
+- **Day sheet** lists only the picked hobby's sessions, with the hobby in the subtitle. When the day has other sessions it shows "1 other session that day · **Show all hobbies**", which shows the whole day.
+- **Stays picked** while scrolling and changing mode. It is not saved, so each launch opens on *All hobbies* (decision on the open point above).
+- No data model, sync or README change. Mockup: https://claude.ai/artifact/6zUMGHAvPZ4NdGwTc9MFAY
+
 ## PACE-14 · Diary: scroll up through history, jump back to today
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
