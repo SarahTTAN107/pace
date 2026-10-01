@@ -112,6 +112,8 @@ What protects the data, in order of how much it matters:
 
 The free plan has **1 GB of file storage** (photos and videos) and **500 MB of database** (the rows). The rows are tiny, a few kB per hundred sessions, so it is the files that grow: a video can be up to 50 MB, a full-size photo is about 0.5–1.5 MB, the diary copy and video still about 50–100 kB.
 
+**Not the bar in the app.** *You → Your data* shows "31% of phone": that is the diary's share of the ~5 MB Safari gives Pace on that phone, mostly the small photo copies. It is not Supabase storage, and it clears itself (see *Phone storage never silently fills* above).
+
 **See what is using it:** Supabase → SQL Editor → paste **storage-report.sql** → Run. It only reads, and returns one table with three sections:
 
 1. Space by kind: diary photos, full-size photos, video stills, videos.
