@@ -4,7 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-14 · Diary: pick one hobby in each mode
 
-**Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Open (not started)
+**Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Done ([#25](https://github.com/SarahTTAN107/pace/pull/25))
 
 **Problem:** the Diary calendar always shows all hobbies together. In Intensity, Blend and Media you cannot see how a single hobby has progressed over time, e.g. "how often did I play Tennis this summer?".
 
@@ -25,6 +25,16 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 - Filter on the existing visible-sessions view (which already hides trashed sessions, PACE-12), so no data model or sync change is needed.
 - Overlaps with PACE-8 (per-hobby progress in Milestones); this is the calendar view of the same question.
+
+**Shipped:**
+
+- **Hobby chips** under the Intensity / Blend / Media control, scrolling sideways: *All hobbies*, then the active hobbies, then archived hobbies that have sessions. A picked chip fills with the hobby's colour (*All hobbies* in blue).
+- **Tap the picked hobby again** to go back to *All hobbies*. A hobby deleted while picked also falls back to *All hobbies*.
+- **Intensity** shades days in the picked hobby's colour, legend included. **Blend** shows only that hobby's colour, and its legend lists only that hobby. **Media** counts only that hobby's photos and videos.
+- **Days without the picked hobby** look empty and can't be tapped. The month total reads e.g. *🎾 Tennis this month* and counts only that hobby. VoiceOver day labels name the hobby ("20 September, Tennis, 45m").
+- **Day sheet** lists only the picked hobby's sessions, with the hobby in the subtitle. When the day has other sessions it shows "1 other session that day · **Show all hobbies**", which shows the whole day.
+- **Stays picked** while changing month or mode. It is not saved, so each launch opens on *All hobbies* (decision on the open point above).
+- No data model, sync or README change. Mockup: https://claude.ai/artifact/6zUMGHAvPZ4NdGwTc9MFAY
 
 ## PACE-13 · Emojis for hobbies, not just colour dots
 
