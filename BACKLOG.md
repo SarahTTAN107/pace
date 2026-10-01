@@ -6,7 +6,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done ([#27](https://github.com/SarahTTAN107/pace/pull/27))
 
-**Problem:** 31% of the free plan's storage is used, with no way to see what by, and some of it is files nothing points at: deletes made before Recently deleted (PACE-12) blanked the row and left the photos and videos in the bucket.
+**Problem:** no way to see what uses the free plan's storage, and some of it is files nothing points at: deletes made before Recently deleted (PACE-12) blanked the row and left the photos and videos in the bucket. First report (1 Oct 2026): 10 MB of files out of 1 GB, 1.7 MB of it from erased sessions; database 11 MB out of 500 MB.
 
 **Shipped:**
 
@@ -14,7 +14,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 - **Weekly sweep on sync:** removes the files of sessions whose row is a tombstone in Supabase. Never touches a session in the diary, in Recently deleted, or still on that phone. 100 sessions per sync until the backlog is gone.
 - No schema change, no change to how photos and videos are stored.
 
-**Open:** what grows next is videos (up to 50 MB each). Options, once the report shows the split: a lower video size limit, or shrinking full-size photos (2400px at JPEG quality 0.85 now). Both lower quality, so decide with the numbers.
+**Open:** none needed at today's size. If storage nears the limit, the options are a lower video size limit (50 MB now) or smaller full-size photos (2400px at JPEG quality 0.85 now, about 1 MB each); both lower quality.
 
 ## PACE-15 · Diary: pick one hobby in each mode
 
