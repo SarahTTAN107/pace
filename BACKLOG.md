@@ -4,7 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-14 · Diary: pick one hobby in each mode
 
-**Type:** New feature · **Tag:** feature · **Priority:** Medium · **Status:** Open (not started)
+**Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Open (not started)
 
 **Problem:** the Diary calendar always shows all hobbies together. In Intensity, Blend and Media you cannot see how a single hobby has progressed over time, e.g. "how often did I play Tennis this summer?".
 
