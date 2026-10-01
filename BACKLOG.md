@@ -2,6 +2,20 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-16 · Storage: see what fills it, clear files of erased sessions
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done
+
+**Problem:** 31% of the free plan's storage is used, with no way to see what by, and some of it is files nothing points at: deletes made before Recently deleted (PACE-12) blanked the row and left the photos and videos in the bucket.
+
+**Shipped:**
+
+- **storage-report.sql**, read-only: space by kind (diary photo, full-size photo, video still, video), files nothing points at (erased session, no session row, not in its session), database size per table.
+- **Weekly sweep on sync:** removes the files of sessions whose row is a tombstone in Supabase. Never touches a session in the diary, in Recently deleted, or still on that phone. 100 sessions per sync until the backlog is gone.
+- No schema change, no change to how photos and videos are stored.
+
+**Open:** what grows next is videos (up to 50 MB each). Options, once the report shows the split: a lower video size limit, or shrinking full-size photos (2400px at JPEG quality 0.85 now). Both lower quality, so decide with the numbers.
+
 ## PACE-15 · Diary: pick one hobby in each mode
 
 **Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Done ([#25](https://github.com/SarahTTAN107/pace/pull/25))
