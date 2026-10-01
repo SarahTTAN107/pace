@@ -12,7 +12,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 - **storage-report.sql**, read-only: space by kind (diary photo, full-size photo, video still, video), files nothing points at (erased session, no session row, not in its session), database size per table.
 - **Weekly sweep on sync:** removes the files of sessions whose row is a tombstone in Supabase. Never touches a session in the diary, in Recently deleted, or still on that phone. 100 sessions per sync until the backlog is gone.
-- **The "% used" bar in You → Your data** is phone space (the ~5 MB Safari allows), not Supabase. It read "31% used" right under the Supabase text, which looked like the cloud filling up. Now "31% of phone", with a line saying so.
+- **Removed the "% used" bar** from You → Your data. It measured phone space (the ~5 MB Safari allows), not Supabase, and read "31% used" right under the Supabase text, which looked like the cloud filling up. Supabase's own emails and Usage page cover the real limits; phone space already clears itself.
 - No schema change, no change to how photos and videos are stored.
 
 **Open:** none needed at today's size. If storage nears the limit, the options are a lower video size limit (50 MB now) or smaller full-size photos (2400px at JPEG quality 0.85 now, about 1 MB each); both lower quality.
