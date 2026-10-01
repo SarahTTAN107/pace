@@ -13,6 +13,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 **Scope:**
 
 - **Hobby picker** above or next to the Intensity / Blend / Media control: *All hobbies* (default) plus each hobby with its emoji and colour (PACE-13). Archived hobbies are listed too, after the active ones, so their history can still be viewed.
+- **Tap again to deselect:** tapping the hobby that is already picked deselects it and goes back to *All hobbies*. With no hobby picked, the Diary always shows *All hobbies*.
 - **Intensity:** day shading counts only the chosen hobby's time. Consider using the hobby's colour for the scale instead of the default blue.
 - **Blend:** with one hobby picked, each day shows just that hobby's colour (in effect a single-hobby intensity); the legend shows only that hobby.
 - **Media:** only days where the chosen hobby has a photo or video count as *Photo or video*; days with only that hobby's time are *Time only*.
