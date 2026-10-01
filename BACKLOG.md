@@ -2,6 +2,19 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-13 · Emojis for hobbies, not just colour dots
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Low · **Status:** Done
+
+**Want:** give a hobby a cute emoji instead of only a colour dot.
+
+**Scope:**
+
+- **Pick one** from a row of 32 preset emojis, or type any emoji from the keyboard. Available when adding a hobby (Timer and You) and under *You → Edit*. The dot button goes back to the plain colour dot.
+- **Where it shows:** the emoji sits on a soft circle of the hobby's colour in *Your hobbies*, *Archived*, *Logged today*, *Split by hobby* and the Blend legend, and in front of the name in the hobby pickers, the day sheet, the viewer title and the wrap-up.
+- **Colour stays.** Calendar cells, stats bars and tiles still use the colour, so every hobby keeps one.
+- **Sync:** new `hobbies.emoji` column (see README *Upgrading*).
+
 ## PACE-12 · Recently deleted: recover sessions, photos and videos for 30 days
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done

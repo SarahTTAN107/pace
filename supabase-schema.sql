@@ -9,6 +9,7 @@ create table if not exists public.hobbies (
   id         text        not null,
   name       text        not null default '',
   color      text        not null default '',
+  emoji      text        not null default '',
   archived   boolean     not null default false,
   deleted    boolean     not null default false,
   updated_at timestamptz not null default now(),
@@ -17,6 +18,7 @@ create table if not exists public.hobbies (
 
 -- Added after the first release; safe to re-run on an existing project.
 alter table public.hobbies add column if not exists archived boolean not null default false;
+alter table public.hobbies add column if not exists emoji text not null default '';
 
 create table if not exists public.sessions (
   user_id     uuid        not null references auth.users on delete cascade,

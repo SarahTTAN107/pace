@@ -35,6 +35,15 @@ notify pgrst, 'reload schema';
 
 Until the columns exist, sync stops with *"Supabase needs the Recently deleted columns"*; nothing on the phone is lost. A device still running an older copy of the app shows sessions in Recently deleted as normal sessions until it updates.
 
+**Hobby emojis:** run this once **before** deploying the `index.html` that adds hobby emojis (re-running the whole `supabase-schema.sql` also works):
+
+```sql
+alter table public.hobbies add column if not exists emoji text not null default '';
+notify pgrst, 'reload schema';
+```
+
+Until the column exists, sync stops with *"Supabase needs the hobby emoji column"*; nothing on the phone is lost. A device still running an older copy of the app keeps showing colour dots until it updates; its hobby edits leave the emoji in place.
+
 Run this once **before** deploying a new `index.html` that adds the hobby archive (re-running the whole `supabase-schema.sql` also works — it is idempotent):
 
 ```sql
