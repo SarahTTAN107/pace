@@ -108,10 +108,27 @@ What protects the data, in order of how much it matters:
 - **Enlarge and download:** in the Diary, open a day and tap a session, its thumbnail or **Expand**. Photos and videos fill the screen (swipe, the arrows or ← → to move between them, Esc to close), with the full note and tags below. **Download** saves the largest copy available. On a phone it opens the share sheet, so **Save Image / Save Video** puts it in Photos; on a computer it downloads the file.
 - **Phone storage never silently fills.** Safari gives the app ~5 MB. Once a photo is safely in the bucket its local copy is only a cache: past ~3 MB, cached photos older than 30 days are dropped; if a save would still hit the limit, older uploaded photos go first. Photos not yet uploaded are never dropped.
 
+## Storage: what fills it, and keeping it lean
+
+The free plan has **1 GB of file storage** (photos and videos) and **500 MB of database** (the rows). The rows are tiny, a few kB per hundred sessions, so it is the files that grow: a video can be up to 50 MB, a full-size photo is about 0.5–1.5 MB, the diary copy and video still about 50–100 kB.
+
+**Watching the limits:** the app shows no storage meter. Supabase emails the project owner when usage nears or passes a free-plan limit, and **Usage** in the dashboard shows the live numbers. Phone space looks after itself (see *Phone storage never silently fills* above); if a save ever hits Safari's limit, the app says *Phone storage full*.
+
+**See what is using it:** Supabase → SQL Editor → paste **storage-report.sql** → Run. It only reads, and returns one table with three sections:
+
+1. Space by kind: diary photos, full-size photos, video stills, videos.
+2. Files nothing points at any more: from sessions **erased for good**, from **no session row**, or **not in its session** (removed in an edit before Recently deleted existed). Everything in Recently deleted counts as in use.
+3. The database size, per table.
+
+**Cleaned up automatically:** once a week, after a sync, the app removes the files of sessions that are already erased for good (their row in `sessions` is `deleted = true`). These are left over from deletes made before Recently deleted existed, or from a purge on a phone that was wiped before it could upload the purge. It never touches a session that is in the diary or in Recently deleted, or one this phone still holds; a large backlog is cleared 100 sessions per sync. No SQL needed.
+
+Do not delete files by running `delete from storage.objects` in SQL: that removes the row but can leave the file in the bucket, still counted. Delete through the app, or in Storage → `pace-photos` in the dashboard.
+
 ## Files
 
 - `index.html` — the whole app, one self-contained file.
 - `supabase-schema.sql` — tables, RLS policies, storage bucket and its policies.
+- `storage-report.sql` — read-only report of what uses the storage and the database.
 - `sw.js` — service worker; network-first for the page (updates land on the next open), cache fallback offline, and it never touches Supabase requests.
 - `manifest.webmanifest`, `icon-*.png` — Home Screen name and icons. Swap the artwork, keep the filenames.
 - `vercel.json` — stops Vercel caching `index.html` and `sw.js`, so updates reach your phone.

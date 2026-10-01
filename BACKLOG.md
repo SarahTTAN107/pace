@@ -2,6 +2,21 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-16 · Storage: see what fills it, clear files of erased sessions
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done ([#27](https://github.com/SarahTTAN107/pace/pull/27))
+
+**Problem:** no way to see what uses the free plan's storage, and some of it is files nothing points at: deletes made before Recently deleted (PACE-12) blanked the row and left the photos and videos in the bucket. First report (1 Oct 2026): 10 MB of files out of 1 GB, 1.7 MB of it from erased sessions; database 11 MB out of 500 MB.
+
+**Shipped:**
+
+- **storage-report.sql**, read-only: space by kind (diary photo, full-size photo, video still, video), files nothing points at (erased session, no session row, not in its session), database size per table.
+- **Weekly sweep on sync:** removes the files of sessions whose row is a tombstone in Supabase. Never touches a session in the diary, in Recently deleted, or still on that phone. 100 sessions per sync until the backlog is gone.
+- **Removed the "% used" bar** from You → Your data. It measured phone space (the ~5 MB Safari allows), not Supabase, and read "31% used" right under the Supabase text, which looked like the cloud filling up. Supabase's own emails and Usage page cover the real limits; phone space already clears itself.
+- No schema change, no change to how photos and videos are stored.
+
+**Open:** none needed at today's size. If storage nears the limit, the options are a lower video size limit (50 MB now) or smaller full-size photos (2400px at JPEG quality 0.85 now, about 1 MB each); both lower quality.
+
 ## PACE-15 · Diary: pick one hobby in each mode
 
 **Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Done ([#25](https://github.com/SarahTTAN107/pace/pull/25))
