@@ -112,7 +112,7 @@ What protects the data, in order of how much it matters:
 
 The free plan has **1 GB of file storage** (photos and videos) and **500 MB of database** (the rows). The rows are tiny, a few kB per hundred sessions, so it is the files that grow: a video can be up to 50 MB, a full-size photo is about 0.5–1.5 MB, the diary copy and video still about 50–100 kB.
 
-**See what is using it:** Supabase → SQL Editor → paste **storage-report.sql** → Run. It only reads, and shows:
+**See what is using it:** Supabase → SQL Editor → paste **storage-report.sql** → Run. It only reads, and returns one table with three sections:
 
 1. Space by kind: diary photos, full-size photos, video stills, videos.
 2. Files nothing points at any more: from sessions **erased for good**, from **no session row**, or **not in its session** (removed in an edit before Recently deleted existed). Everything in Recently deleted counts as in use.
