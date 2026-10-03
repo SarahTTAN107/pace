@@ -4,7 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-18 · Timer becomes a sticky + button: three tabs
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** Not set · **Status:** Open (not started)
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (not started)
 
 **Problem:** the Timer takes a whole tab (Timer, Diary, Stats, You), even though starting or logging a session is one quick action you may want from anywhere.
 
