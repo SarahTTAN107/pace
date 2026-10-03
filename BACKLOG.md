@@ -2,6 +2,28 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-17 · Stats: Spotify Wrapped-style reporting
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (not started)
+
+**Problem:** Stats reads like a dashboard: totals and comparisons (this week vs last, weekly trend, split by hobby, time of day) in static cards. It's accurate but flat. Nothing makes looking back feel rewarding or worth sharing.
+
+**Want:** reporting in the style of Spotify Wrapped: a story you tap through, one big, bold insight per card, that celebrates what you did.
+
+**Scope (to refine):**
+
+- **Story format:** full-screen cards, tap or swipe to go forward or back, progress dashes at the top, close with drag down or Esc.
+- **Headline cards:** total time, top hobby, top hobby's share, longest session, best streak, busiest day and month, favourite time of day ("You're a morning player"), most-used tags, first session of the period, photos and videos captured.
+- **Periods:** a monthly recap, and a year in review that unlocks at the end of the year. Optionally a recap for any month or year in the Diary's history.
+- **Look:** big type and bold colour per card, built from the hobby's colour (PACE-13) and the Water palette (PACE-7). Subtle motion, off under Reduce Motion.
+- **Share:** save or share a card as an image.
+- **Accessibility:** every card has a VoiceOver summary, 44 pt targets, and tap-to-advance also works with VoiceOver.
+
+**Notes:**
+
+- Overlaps with PACE-8 (Milestones): Wrapped is the look-back, Milestones is the look-forward. Decide whether the recap lives in Stats, in Milestones, or opens from both. PACE-8's optional AI summaries could write a card's caption, but the recap must work without AI.
+- Uses the visible-sessions view (no trashed sessions, PACE-12). No data model or sync change expected.
+
 ## PACE-16 · Storage: see what fills it, clear files of erased sessions
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done ([#27](https://github.com/SarahTTAN107/pace/pull/27))
