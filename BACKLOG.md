@@ -4,25 +4,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 ## PACE-17 · Stats: Spotify Wrapped-style reporting
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (not started)
-
-**Problem:** Stats reads like a dashboard: totals and comparisons (this week vs last, weekly trend, split by hobby, time of day) in static cards. It's accurate but flat. Nothing makes looking back feel rewarding or worth sharing.
-
-**Want:** reporting in the style of Spotify Wrapped: a story you tap through, one big, bold insight per card, that celebrates what you did.
-
-**Scope (to refine):**
-
-- **Story format:** full-screen cards, tap or swipe to go forward or back, progress dashes at the top, close with drag down or Esc.
-- **Headline cards:** total time, top hobby, top hobby's share, longest session, best streak, busiest day and month, favourite time of day ("You're a morning player"), most-used tags, first session of the period, photos and videos captured.
-- **Periods:** a monthly recap, and a year in review that unlocks at the end of the year. Optionally a recap for any month or year in the Diary's history.
-- **Look:** big type and bold colour per card, built from the hobby's colour (PACE-13) and the Water palette (PACE-7). Subtle motion, off under Reduce Motion.
-- **Share:** save or share a card as an image.
-- **Accessibility:** every card has a VoiceOver summary, 44 pt targets, and tap-to-advance also works with VoiceOver.
-
-**Notes:**
-
-- Overlaps with PACE-8 (Milestones): Wrapped is the look-back, Milestones is the look-forward. Decide whether the recap lives in Stats, in Milestones, or opens from both. PACE-8's optional AI summaries could write a card's caption, but the recap must work without AI.
-- Uses the visible-sessions view (no trashed sessions, PACE-12). No data model or sync change expected.
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Merged into PACE-8 (see *Wrapped-style recaps* there)
 
 ## PACE-16 · Storage: see what fills it, clear files of erased sessions
 
@@ -196,7 +178,7 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 
 **Problem:** Stats shows totals and comparisons (this week vs last, weekly trend, split by hobby, time of day), but not *progress towards something*. It cannot answer "how far am I from my goal?" or celebrate reaching one.
 
-**Want:** replace the **Stats** tab with a **Milestones** tab. You set milestones per hobby, the app reports progress towards them, and an AI assistant helps you choose milestones and explains your progress.
+**Want:** replace the **Stats** tab with a **Milestones** tab. You set milestones per hobby, the app reports progress towards them, Wrapped-style recaps celebrate each month and year, and an AI assistant helps you choose milestones and explains your progress.
 
 **Scope:**
 
@@ -214,6 +196,15 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
   - Suggest realistic milestones from your history ("you average 2.5 h/week on Tennis; 100 h would take about 9 months").
   - Write weekly or monthly progress reports in plain language, and point out patterns (best time of day, slipping hobbies).
   - Ask questions about your practice ("how much piano did I do in August?").
+- **Wrapped-style recaps** (was PACE-17)
+  - **Problem:** Stats reads like a dashboard: accurate but flat. Nothing makes looking back feel rewarding or worth sharing.
+  - **Story format** like Spotify Wrapped: full-screen cards, one big, bold insight per card. Tap or swipe to go forward or back, progress dashes at the top, close with drag down or Esc.
+  - **Headline cards:** total time, top hobby and its share, longest session, best streak, busiest day and month, favourite time of day ("You're a morning player"), most-used tags, first session of the period, photos and videos captured. Milestones and achievements reached in the period get their own cards.
+  - **Periods:** a monthly recap, and a year in review that unlocks at the end of the year. Optionally a recap for any month or year in the Diary's history.
+  - **Look:** big type and bold colour per card, from the hobby's colour (PACE-13) and the Water palette (PACE-7). Subtle motion, off under Reduce Motion.
+  - **Share:** save or share a card as an image.
+  - **AI is optional:** the AI progress reports can write a card's caption, but every recap works without AI.
+  - Uses the visible-sessions view (no trashed sessions, PACE-12). No data model or sync change needed for the recaps themselves.
 - **Keep from Stats:** the useful parts (split by hobby, time of day), moved into Milestones or a per-hobby detail view, so nothing is lost.
 - **Design:** built in the PACE-7 iOS style from the start (grouped cards, system font, 44 pt targets, VoiceOver summaries for every chart).
 
@@ -225,7 +216,7 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 4. **CSP.** `vercel.json` `connect-src` only allows the Supabase project today; the AI call should go through Supabase so it stays that way.
 5. **Offline.** Milestones and achievements work offline; AI features show as unavailable without a connection.
 
-**Replaces:** PACE-7 step 4 (Stats redesign, paused) and item 4 below (Stats benchmark), whose options table is the starting point for targets.
+**Replaces:** PACE-7 step 4 (Stats redesign, paused), PACE-17 (Wrapped-style reporting, merged in above) and item 4 below (Stats benchmark), whose options table is the starting point for targets.
 
 ## Feedback round — 2026-09-27
 
