@@ -2,6 +2,30 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-18 · Timer becomes a sticky + button: three tabs
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Not set · **Status:** Open (not started)
+
+**Problem:** the Timer takes a whole tab (Timer, Diary, Stats, You), even though starting or logging a session is one quick action you may want from anywhere.
+
+**Want:** a sticky **+** button on every screen replaces the Timer tab. The tab bar has three tabs: **Diary**, **Stats** and **You**. Stats later becomes the Milestones and companionship tab (PACE-8).
+
+**Scope (to refine):**
+
+- **+ button:** floats in the same place on every tab, above the tab bar and clear of the Diary's **↓ Today** button (PACE-14). It is at least 44 pt, with a VoiceOver label ("Start or log a session").
+- **Tapping +** opens a bottom sheet in the PACE-7 style: hobby picker, **Clock in**, **Countdown** (goal chips 25 / 45 / 60 m) and **Log a past session**. Grabber, drag down, tap outside or Esc to close.
+- **While a session runs:** the + turns into a live pill showing the hobby and running time (e.g. "🎾 12:34"), still on every tab. Tapping it reopens the timer sheet with pause, resume and stop. Closing the sheet never stops the session.
+- **Logged today** moves out of the Timer: into the + sheet, or onto today in the Diary. Decide which. Editing a session from there (PACE-11) keeps working.
+- **Launch tab:** the app opens on the Diary instead of the Timer.
+- **Session complete** and the undo toast (PACE-12) still appear after Stop, on whichever tab you are on.
+
+**Notes:**
+
+- Ties in with feedback item 1 (Clock in and Countdown must run independently): decide that before building the sheet, since one live session at a time is the simpler fit for a single pill.
+- Ties in with PACE-7 step 6 (iOS tab bar with icons): the three-tab bar can be built in that style.
+- **Companionship** is a new idea for the Stats/Milestones tab, not yet in PACE-8. It needs its own scope.
+- No data model or sync change expected: the live session (`store.live`) and logging stay as they are.
+
 ## PACE-17 · Stats: Spotify Wrapped-style reporting
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Merged into PACE-8 (see *Wrapped-style recaps* there)
