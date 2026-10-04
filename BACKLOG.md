@@ -1,6 +1,138 @@
 # Pace — backlog
 
-Open feedback and ideas, newest first. Move an item to a PR when work starts.
+Open work first, in the order it will be done; finished tickets are under **Done** at the end, newest first. Move an item to a PR when work starts.
+
+## Up next
+
+1. **PACE-19** · Diary media in IndexedDB (lasting fix). Finish it in [#33](https://github.com/SarahTTAN107/pace/pull/33), then merge.
+2. **PACE-22** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix.
+3. **PACE-23** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
+4. **PACE-18** · Timer becomes a sticky + button, three tabs. High priority; before the tab bar work it reshapes.
+5. **PACE-20** · Settings and sign-in as inset lists. Small, finishes the redesign.
+6. **PACE-21** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
+7. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
+
+## PACE-19 · Diary: media takes a long while to load
+
+**Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** In review ([#33](https://github.com/SarahTTAN107/pace/pull/33)): quick fix and lasting fix built and tested in a browser. Test on iPhone (list under *Risks and checks*) before merging.
+
+**Problem:** in the Diary, photo and video thumbnails take a long time to appear, especially in Media mode. The phone keeps only recent diary copies of uploaded photos and downloads the rest from Supabase when they are needed. That download was slow for four reasons:
+
+1. **One request per day.** Switching to Media asked for every day of the 6 visible months separately (about 180 calls). Each day with photos made its own signing request to Supabase.
+2. **One photo at a time.** Within a day, each file was signed, downloaded and converted before the next one started.
+3. **The whole store was saved after every day.** Each finished day copied the entire phone store, photos included, and wrote it to phone storage. That meant several MB written over and over, and the app stuttered while it ran.
+4. **Nothing loaded on its own, and nothing was remembered.**
+   - With Media as the saved Default Diary Mode (PACE-9), nothing downloaded at launch until something was tapped.
+   - Thumbnails the app drops to save phone space (past 3 MB, or when Safari's ~5 MB is full) were downloaded again from scratch.
+   - Tapping a day while its month was loading downloaded the same files twice.
+
+**Quick fix (done):**
+
+- **One signing request** covers every missing file in the visible months (up to 100 files per request).
+- **Six downloads at a time** instead of one.
+- **One save per batch**, and none when nothing changed. Thumbnails are matched to sessions by file path, so a session edited during the download still gets the right picture.
+- **No double downloads:** a file already on its way is not requested again.
+- **Kept in memory:** downloaded thumbnails stay in memory, so ones the app drops refill without going online.
+- **Loads at launch:** with Media saved as the Default Diary Mode, loading starts after the first sync.
+- **Measured** with a stubbed Supabase (20 days, 40 photos): 1 signing request instead of 20, 6 downloads at a time instead of 1, and 1 save instead of 20. Dropped thumbnails refilled with no network calls.
+
+**Why the quick fix is not enough:** the diary copies themselves live in the wrong place. Each photo's ~780px diary copy (JPEG quality 0.62, saved as base64 text, roughly 100–150 KB) sits inside the one localStorage store with every session, which Safari caps at ~5 MB. That is only a few dozen photos. Past that, the app has to keep throwing copies away (`evictPhotos`: anything older than 30 days once the store passes 3 MB, then older than 7 days, then all of them when a save fails), and every launch downloads them again. Every save also rewrites the whole store, photos included, so the more photos are kept, the slower every tap that saves gets.
+
+**Lasting fix (built 4 Oct 2026, as planned after the review):** keep diary copies in IndexedDB (the "photo cupboard"), next to the full-size photos and videos already waiting there, and keep only references in localStorage (the "notebook"). The review kept this direction and added the safety rules below. The second half of the loading fix, tiny calendar pictures and loading only what is on screen, is PACE-22.
+
+- **Two shelves, so the only copy is never cleared by mistake.**
+  - **Waiting shelf:** the existing `blobs` store, which already holds full-size photos and videos until they upload. Small copies of photos not yet uploaded go here too, keyed by a local id. Nothing on this shelf is ever cleared automatically. It empties only by a confirmed upload, a delete, sign-out or an account change.
+  - **Copies shelf:** a new `thumbs` store (`pace-media` database version 1 → 2) for copies of uploaded photos, keyed by bucket path. Everything here also exists in Supabase, so it can be cleared at any time.
+  - Both hold image bytes, not base64 text (a third smaller).
+- **What the notebook keeps:** sessions, `photoPaths`, and the local id per slot not yet uploaded. No picture bytes, so it stays a few hundred KB however many photos there are, and saves stay fast.
+- **Save order, so the two places never disagree.**
+  - Adding a photo: write it to the waiting shelf, then record it in the notebook.
+  - After an upload: copy it to the copies shelf under its path, then update the notebook, then remove it from the waiting shelf.
+  - If the app closes halfway, the worst case is an extra copy with nothing pointing at it, never a reference to a missing picture.
+  - **Tidy-up** after each successful sync removes copies-shelf entries that no session or Recently deleted item points to. It never touches the waiting shelf.
+- **One-time move, done safely.** On the first launch of the new version, each base64 copy in the notebook is written to the cupboard, read back to check it, and only then removed from the notebook. It runs in small batches and picks up where it stopped on the next launch. If the cupboard fails, copies stay in the notebook and nothing is lost.
+- **Account changes.** Sign-out already empties the cupboard. Signing in as a **different** account (after an expired session) blanks the notebook today but leaves the cupboard, so the previous person's photos stay on the phone. Empty both shelves in that case too, and clear the in-memory copies from the quick fix at sign-out and on an account change.
+- **Size cap on the copies shelf only:** about 150 MB. When it is passed, the least recently viewed copies are cleared first (their "last viewed" date is updated at most once a day, to avoid extra writes). The waiting shelf has no cap.
+- **Fallback:** if the cupboard cannot be opened (some private-browsing modes, very old Safari, or an older copy of the app holding the database open in another tab), photos not uploaded yet stay in the notebook as before, and downloaded copies are kept in memory only, until the app closes. Built that way rather than writing downloads back into the notebook, which could fill it and set off "Phone storage full". It never stops working, and the next launch tries the cupboard again.
+- **Showing a copy:** every screen that shows a picture asks for it (the Media diary, the Timer's sessions, a day, the viewer, the edit sheet, Recently deleted, the running session), and one loader reads all of them from the cupboard in one go, showing them through in-memory image links (`blob:`, already allowed by the site's Content-Security-Policy, so no `vercel.json` change). Only copies missing from the cupboard are downloaded, with the quick fix's batched, parallel download, and saved to the copies shelf as they arrive.
+- **Media days before copies arrive:** the calendar marks a day as *Photo or video* from `photoPaths`, not from loaded pictures, so Media mode shows the right days at once, with a placeholder until each picture loads.
+- **Backup file (*Download a copy*):** today it is the notebook as it is, pictures included. After the move it must read the pictures back from the cupboard, so a backup still holds them, above all photos not yet uploaded. Importing a backup made by an older version moves its pictures into the cupboard.
+- **Removing copies:** deleting a session or media item, emptying Recently deleted (PACE-12), the erased-session sweep (PACE-16) and *Clear everything* also delete the matching copies.
+- **Retire the workarounds when the cupboard works:** `evictPhotos`, the 3 MB rule in sync and the "Phone storage full" path for photos then stay only as the fallback. `ensurePhotos`/`fillPhotos` from the quick fix are replaced by that loader (`pic()`/`loadPics()`), so Intensity and Blend modes no longer download pictures they do not show.
+
+**Security and privacy:**
+
+- Photos stay in the private `pace-photos` bucket, protected by row-level security and links that expire after 10 minutes. No new service, no new permission, no change to `vercel.json`.
+- On the phone, copies are kept the same way as today (readable only by this site), and are emptied at sign-out, on an account change and by *Clear everything*.
+
+**Options considered and rejected:**
+
+| Option | Why not |
+|---|---|
+| Make the bucket public | Fast, but anyone with a link could see the photos |
+| Long-lasting signed links (days, not 10 minutes) | The browser could reuse them, but a leaked link would work for days |
+| Supabase image resizing | Only on paid plans |
+| Store photos in the database | Fills the 500 MB database and slows every sync |
+
+**Tested (4 Oct 2026):** the real page in headless Chromium, under the site's Content-Security-Policy, with a fake Supabase (sign-in, database, storage). 50 checks pass, including:
+
+- **One-time move** from an old-version phone (v1 database, pictures in localStorage): nothing left in localStorage, uploaded pictures keep only their path, unsent ones get their key, the database upgrades to version 2.
+- **Uploads:** a photo not yet uploaded reaches the bucket with its exact bytes, under a new name when a removed photo still holds the old one. A video uploads with its still, and leaves the waiting shelf afterwards.
+- **No repeat downloads:** only the picture missing from the phone is downloaded, and a relaunch downloads nothing.
+- **Clean-up:** the uploaded copy leaves the waiting shelf at the next launch; a photo not yet uploaded stays.
+- **Edits:** a removed photo shows in Recently deleted, and Undo brings it back with every copy kept. Erasing a session removes its copies.
+- **Account change:** a different account signing in empties both shelves and memory.
+- **Backups:** the file holds the pictures, with the original bytes; merging an old-format backup moves its pictures into the cupboard.
+- **Cap:** over the cap, only the least recently viewed copy is cleared.
+- **Fallbacks:** with no IndexedDB, photos stay in localStorage, still upload and still show. With the upgrade blocked by an old tab, nothing is lost and the next launch finishes the move.
+
+**Risks and checks:**
+
+- If Safari clears website data (private browsing, or Safari tabs unused for 7 days; the Home Screen app is not affected), the cupboard empties. Uploaded copies download again. Photos not yet uploaded are lost in that case, exactly as they would be in the notebook today, and full-size photos and videos already carry that risk. It ends at the next sync.
+- An older copy of the app on another device keeps working: nothing synced changes (`photo_paths` and the bucket files stay as they are).
+- **Test on iPhone Safari and the Home Screen app:**
+  - A diary with 200+ photos: launch speed, and scrolling back a year in Media mode.
+  - Launching offline.
+  - The one-time move on a phone that already has photos, including closing the app partway through.
+  - Adding a photo offline, then syncing.
+  - Delete, restore and erase cleaning up copies.
+  - Signing in as a different account on the same phone.
+  - Backup export and import, with an old and a new backup file.
+
+## PACE-22 · Diary: tiny calendar pictures, load only what is on screen
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (after PACE-19)
+
+**From:** the PACE-19 review (4 Oct 2026). Second half of the loading fix.
+
+**Problem:** each calendar square is about 50 px, but it shows the ~780px diary copy, roughly 15 times more data than it needs (about 120 KB instead of about 8 KB). Scrolling back a year in Media mode holds hundreds of these large pictures in memory. On an iPhone that can make scrolling stutter or make Safari reload the page. The diary also loads pictures for all six months it has rendered at once, not just the ones near the screen.
+
+**Want:**
+
+- **A tiny picture for calendar squares:** about 160 px, about 8 KB, named after its diary copy (`3.jpg` → `3.cell.jpg`, `3.video.jpg` → `3.video.cell.jpg`).
+  - **New photos and videos:** made when the media is added and uploaded with the diary copy, so every device gets it.
+  - **Existing photos:** each phone makes it from the diary copy the first time it downloads that copy, and keeps it on the copies shelf (PACE-19). Not uploaded, to keep this change small. Decide later whether one device should upload them for the others.
+  - **Fallback:** if there is no tiny picture (e.g. media added by an older version of the app), the calendar uses the diary copy, as today.
+- **What uses which:** calendar squares use the tiny picture; the day sheet and Recently deleted keep the diary copy; the viewer keeps the full-size file.
+- **Load only what is near the screen:** months are loaded as they scroll close to view, not all at once.
+
+**Also update:**
+
+- **Deletes:** removing one photo or video in an edit (`mediaFiles`) must also remove its tiny picture. Erasing a whole session already removes its whole folder, so that needs no change.
+- **storage-report.sql:** count tiny pictures as their own kind ("calendar picture") and link them to their slot. Today they would be counted as diary photos and reported as "not in its session".
+- **README:** nothing to run in Supabase; no new table or column.
+
+**Cost:** about 8 MB of bucket space per 1,000 photos, out of the free plan's 1 GB. Fewer and smaller downloads also use less of the free plan's monthly download allowance.
+
+**Test on iPhone:** scrolling back a year in Media mode, memory and smoothness compared with before; a session with photos added by an older version of the app; removing a photo in an edit, then checking with storage-report.sql that its tiny picture is gone.
+
+## PACE-23 · Sync: a new upload can reuse a file name that is about to be erased
+
+**Type:** Bug · **Tag:** bug · **Priority:** Medium · **Status:** Open (found while testing PACE-19; not fixed there)
+
+**Problem:** a new photo or video takes the first file name in its session that no slot and no Recently deleted item uses (`uploadMedia`). An item erased for good (**Delete now**, or after 30 days) leaves Recently deleted at once, but its files are only removed from the bucket at the next sync, *after* that sync's uploads. So when, before a sync, a photo is erased for good and a new one is added at the same position in the same session (e.g. both offline), the new photo uploads under the erased one's name and the queued delete then removes it. The session points at a file that is gone: other devices cannot show it.
+
+**Fix:** treat names waiting in the delete queue (`purgeQueue`) as taken when choosing a name for a new upload. One line in `uploadMedia`; add a test for the offline case.
 
 ## PACE-18 · Timer becomes a sticky + button: three tabs
 
@@ -21,10 +153,100 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
 **Notes:**
 
-- Ties in with feedback item 1 (Clock in and Countdown must run independently): decide that before building the sheet, since one live session at a time is the simpler fit for a single pill.
-- Ties in with PACE-7 step 6 (iOS tab bar with icons): the three-tab bar can be built in that style.
+- Clock in and Countdown already run independently, one live session at a time (PACE-5, done), which is the simpler fit for a single pill.
+- Ties in with PACE-21 (iOS tab bar with icons, was PACE-7 step 6): the three-tab bar can be built in that style.
 - **Companionship** is a new idea for the Stats/Milestones tab, not yet in PACE-8. It needs its own scope.
 - No data model or sync change expected: the live session (`store.live`) and logging stay as they are.
+
+## PACE-20 · Settings and sign-in: iOS Settings-style inset lists
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Open (not started)
+
+**From:** PACE-7 step 5.
+
+**Problem:** the You/Settings screen and the sign-in screens have not had the PACE-7 redesign yet. They still use the older layout, so they look different from the Timer and Diary.
+
+**Want:** the same look as the iPhone Settings app. Grouped, rounded inset lists with hairline separators, rows with a label on the left and the value or control on the right, and sentence-case section captions above each group. Sign-in (email, then code) uses the same cards and pill buttons as the rest of the app.
+
+**Scope:** You → hobbies, archive, Default Diary Mode, theme, Recently deleted, Your data, sync status, sign out; and the sign-in and code screens. 44 pt targets and VoiceOver labels throughout. No behaviour change.
+
+## PACE-21 · App-wide behaviour: tab bar icons, motion, accessibility pass
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Open (not started)
+
+**From:** PACE-7 step 6.
+
+**Problem:** the bottom tab bar is text with a small mark, no icons, unlike iOS tab bars. Motion and accessibility have been handled screen by screen but never checked across the whole app.
+
+**Scope:**
+
+- **Tab bar:** an icon above each label (Timer, Diary, Stats/Milestones, You), filled when selected. If PACE-8 lands first, use the Milestones icon.
+- **Motion:** consistent sheet and screen transitions, all off under Reduce Motion.
+- **Accessibility pass:** contrast in Light and Dark, larger text (Dynamic Type) without clipping, VoiceOver order and labels on every screen, and 44 pt targets everywhere.
+
+## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
+
+**Type:** New feature · **Tag:** feature · **Priority:** High · **Status:** Open (not started; blocked on the decisions below)
+
+**Problem:** Stats shows totals and comparisons (this week vs last, weekly trend, split by hobby, time of day), but not *progress towards something*. It cannot answer "how far am I from my goal?" or celebrate reaching one.
+
+**Want:** replace the **Stats** tab with a **Milestones** tab. You set milestones per hobby, the app reports progress towards them, Wrapped-style recaps celebrate each month and year, and an AI assistant helps you choose milestones and explains your progress.
+
+**Scope:**
+
+- **Milestones per hobby**
+  - Lifetime hour milestones, e.g. 100 h, 1,000 h, the 10,000-hour mark.
+  - Optional shorter targets: weekly hours (e.g. 3 h/week) or sessions per week (see *Targets: options* below).
+  - Each shows hours done, % complete, and a projected date at your current pace.
+- **Achievements**
+  - Awarded automatically as you pass thresholds (e.g. first 10 h, 100 h, 1,000 h, 10,000 h), with streaks such as weeks in a row a weekly target was met.
+  - A clear moment when one is reached (sheet or banner, subtle motion, respects Reduce Motion), plus a list of what you have earned so far.
+- **Progress reporting**
+  - Per hobby: this week / month / all time, trend vs your own usual (last 4 weeks), progress bar against the milestone.
+  - A short summary across all hobbies at the top.
+- **AI integration**
+  - Suggest realistic milestones from your history ("you average 2.5 h/week on Tennis; 100 h would take about 9 months").
+  - Write weekly or monthly progress reports in plain language, and point out patterns (best time of day, slipping hobbies).
+  - Ask questions about your practice ("how much piano did I do in August?").
+- **Wrapped-style recaps** (was PACE-17)
+  - **Problem:** Stats reads like a dashboard: accurate but flat. Nothing makes looking back feel rewarding or worth sharing.
+  - **Story format** like Spotify Wrapped: full-screen cards, one big, bold insight per card. Tap or swipe to go forward or back, progress dashes at the top, close with drag down or Esc.
+  - **Headline cards:** total time, top hobby and its share, longest session, best streak, busiest day and month, favourite time of day ("You're a morning player"), most-used tags, first session of the period, photos and videos captured. Milestones and achievements reached in the period get their own cards.
+  - **Periods:** a monthly recap, and a year in review that unlocks at the end of the year. Optionally a recap for any month or year in the Diary's history.
+  - **Look:** big type and bold colour per card, from the hobby's colour (PACE-13) and the Water palette (PACE-7). Subtle motion, off under Reduce Motion.
+  - **Share:** save or share a card as an image.
+  - **AI is optional:** the AI progress reports can write a card's caption, but every recap works without AI.
+  - Uses the visible-sessions view (no trashed sessions, PACE-12). No data model or sync change needed for the recaps themselves.
+- **Keep from Stats:** the useful parts (split by hobby, time of day), moved into Milestones or a per-hobby detail view, so nothing is lost.
+- **Design:** built in the PACE-7 iOS style from the start (grouped cards, system font, 44 pt targets, VoiceOver summaries for every chart).
+
+**Decisions needed before building:**
+
+1. **AI provider and where it runs.** An AI API key must never ship in `index.html`. Calls need a small server-side function (e.g. a Supabase Edge Function) that holds the key and checks the signed-in user.
+2. **Privacy.** Sending diary data (hobbies, times, notes) to an AI provider is a change from "your data stays in your own Supabase". It should be opt-in, say exactly what is sent, and work fully without AI (milestones and achievements must not depend on it). Notes and photos stay out unless you choose otherwise.
+3. **Data model.** New synced data for milestones and earned achievements (a `milestones` table with RLS, or inside `prefs`), following the existing rules: last write wins, tombstones, and defaults never overwrite the cloud.
+4. **CSP.** `vercel.json` `connect-src` only allows the Supabase project today; the AI call should go through Supabase so it stays that way.
+5. **Offline.** Milestones and achievements work offline; AI features show as unavailable without a connection.
+
+**Replaces:** PACE-7 step 4 (Stats redesign, paused), PACE-17 (Wrapped-style reporting, merged in above) and the Stats benchmark request from the 27 Sep 2026 feedback round, below.
+
+**Original ask (feedback round, 27 Sep 2026):** the main job of Stats is to show progress, e.g. "how many hours have I put into this hobby, against a benchmark?"
+
+**Targets: options.** How to set a target for each hobby:
+
+| Option | How it works | Good for | Downside |
+|---|---|---|---|
+| **A. Weekly time budget** | Set e.g. 3 h/week per hobby. Stats shows this week's hours vs. budget and a streak of weeks met. | Steady habits (guitar, reading) | You have to pick a number up front |
+| **B. Milestone total** | Set a long-term total, e.g. 100 h or 1,000 h. Stats shows lifetime hours, % done and a projected finish date at your current pace. | Skills you want to build over months or years | Slow to move, little day-to-day feedback |
+| **C. Session frequency** | Set e.g. 4 sessions/week, regardless of length. | Hobbies where showing up matters more than duration | Ignores how much time you actually put in |
+| **D. Automatic baseline (no target)** | The app benchmarks each hobby against your own last 4 weeks' average. Stats shows "this week vs. your usual" (up/down %). | Starting out, when you don't know your target yet | Measures consistency, not ambition |
+
+**Targets: recommendation.** ship **D** as the default so every hobby gets a benchmark with zero setup. Then add an optional per-hobby target where you pick **A (weekly hours)** or **B (milestone total)**, suggested from your baseline (e.g. "you average 2.5 h/week — set 3 h?"). Stats would show, per hobby:
+- hours this week / month / all time,
+- progress bar against the target (or baseline if none is set),
+- trend vs. last period, and for milestones a projected finish date.
+
+# Done
 
 ## PACE-17 · Stats: Spotify Wrapped-style reporting
 
@@ -196,65 +418,9 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 
 **Done:** the label now reads *Default Diary Mode*. The caption and options are unchanged.
 
-## PACE-8 · Milestones tab: replace Stats with AI-assisted milestones
+## PACE-7 · Apple design for the whole app (look and behaviour)
 
-**Type:** New feature · **Priority:** High · **Status:** Open (not started)
-
-**Problem:** Stats shows totals and comparisons (this week vs last, weekly trend, split by hobby, time of day), but not *progress towards something*. It cannot answer "how far am I from my goal?" or celebrate reaching one.
-
-**Want:** replace the **Stats** tab with a **Milestones** tab. You set milestones per hobby, the app reports progress towards them, Wrapped-style recaps celebrate each month and year, and an AI assistant helps you choose milestones and explains your progress.
-
-**Scope:**
-
-- **Milestones per hobby**
-  - Lifetime hour milestones, e.g. 100 h, 1,000 h, the 10,000-hour mark.
-  - Optional shorter targets: weekly hours (e.g. 3 h/week) or sessions per week (see the options table in item 4 below).
-  - Each shows hours done, % complete, and a projected date at your current pace.
-- **Achievements**
-  - Awarded automatically as you pass thresholds (e.g. first 10 h, 100 h, 1,000 h, 10,000 h), with streaks such as weeks in a row a weekly target was met.
-  - A clear moment when one is reached (sheet or banner, subtle motion, respects Reduce Motion), plus a list of what you have earned so far.
-- **Progress reporting**
-  - Per hobby: this week / month / all time, trend vs your own usual (last 4 weeks), progress bar against the milestone.
-  - A short summary across all hobbies at the top.
-- **AI integration**
-  - Suggest realistic milestones from your history ("you average 2.5 h/week on Tennis; 100 h would take about 9 months").
-  - Write weekly or monthly progress reports in plain language, and point out patterns (best time of day, slipping hobbies).
-  - Ask questions about your practice ("how much piano did I do in August?").
-- **Wrapped-style recaps** (was PACE-17)
-  - **Problem:** Stats reads like a dashboard: accurate but flat. Nothing makes looking back feel rewarding or worth sharing.
-  - **Story format** like Spotify Wrapped: full-screen cards, one big, bold insight per card. Tap or swipe to go forward or back, progress dashes at the top, close with drag down or Esc.
-  - **Headline cards:** total time, top hobby and its share, longest session, best streak, busiest day and month, favourite time of day ("You're a morning player"), most-used tags, first session of the period, photos and videos captured. Milestones and achievements reached in the period get their own cards.
-  - **Periods:** a monthly recap, and a year in review that unlocks at the end of the year. Optionally a recap for any month or year in the Diary's history.
-  - **Look:** big type and bold colour per card, from the hobby's colour (PACE-13) and the Water palette (PACE-7). Subtle motion, off under Reduce Motion.
-  - **Share:** save or share a card as an image.
-  - **AI is optional:** the AI progress reports can write a card's caption, but every recap works without AI.
-  - Uses the visible-sessions view (no trashed sessions, PACE-12). No data model or sync change needed for the recaps themselves.
-- **Keep from Stats:** the useful parts (split by hobby, time of day), moved into Milestones or a per-hobby detail view, so nothing is lost.
-- **Design:** built in the PACE-7 iOS style from the start (grouped cards, system font, 44 pt targets, VoiceOver summaries for every chart).
-
-**Decisions needed before building:**
-
-1. **AI provider and where it runs.** An AI API key must never ship in `index.html`. Calls need a small server-side function (e.g. a Supabase Edge Function) that holds the key and checks the signed-in user.
-2. **Privacy.** Sending diary data (hobbies, times, notes) to an AI provider is a change from "your data stays in your own Supabase". It should be opt-in, say exactly what is sent, and work fully without AI (milestones and achievements must not depend on it). Notes and photos stay out unless you choose otherwise.
-3. **Data model.** New synced data for milestones and earned achievements (a `milestones` table with RLS, or inside `prefs`), following the existing rules: last write wins, tombstones, and defaults never overwrite the cloud.
-4. **CSP.** `vercel.json` `connect-src` only allows the Supabase project today; the AI call should go through Supabase so it stays that way.
-5. **Offline.** Milestones and achievements work offline; AI features show as unavailable without a connection.
-
-**Replaces:** PACE-7 step 4 (Stats redesign, paused), PACE-17 (Wrapped-style reporting, merged in above) and item 4 below (Stats benchmark), whose options table is the starting point for targets.
-
-## Feedback round — 2026-09-27
-
-### 1. Timer: Clock in and Countdown must run independently
-
-**Problem:** starting *Clock in* also starts the *Countdown goal*. The two modes share one live session (`store.live`), so the countdown moves whenever the clock-in timer does.
-
-**Want:** each mode works on its own. Starting one must not start, pause or reset the other.
-
-**Notes:**
-- Decide whether both can run at the same time (two live sessions) or only one at a time, with switching tabs leaving the other untouched. One at a time is simpler and matches "log one session".
-- The goal chips (25 / 45 / 60 m) and the `% of goal` bar should show only in Countdown mode.
-
-### PACE-7. Apple design for the whole app (look and behaviour)
+**Type:** Improvement · **Tag:** improvement · **Status:** Done for steps 1–3 ([#13](https://github.com/SarahTTAN107/pace/pull/13) and later). Step 4 replaced by PACE-8; steps 5 and 6 moved to PACE-20 and PACE-21.
 
 **Problem:** the UI feels boxy. Borders and lines are too thick and bold, and the orange-and-grey palette clashes with the Water-element colours below.
 
@@ -285,25 +451,13 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
    - The full-screen photo viewer uses the same type, a blue Done and Download, and closes with a downward swipe as well as Esc.
    - Day tiles are real buttons with VoiceOver labels ("20 September, 1h 15m in 2 sessions, with photos"); every control is at least 44 pt.
 4. [ ] ~~**Stats:** grouped cards, iOS type scale.~~ **Paused:** the Stats tab is being replaced by the Milestones tab (PACE-8), which will be built in this style from the start.
-5. [ ] **Settings and sign-in:** iOS Settings-style inset lists.
-6. [ ] **App-wide behaviour:** iOS tab bar with icons, 44 pt targets, motion (respecting reduced motion) and accessibility pass.
+5. [ ] ~~**Settings and sign-in:** iOS Settings-style inset lists.~~ **Moved** to PACE-20.
+6. [ ] ~~**App-wide behaviour:** iOS tab bar with icons, 44 pt targets, motion (respecting reduced motion) and accessibility pass.~~ **Moved** to PACE-21.
 
-### 4. Stats: report progress against a benchmark per hobby
+## PACE-5 · Timer: Clock in and Countdown run independently
 
-**Status:** folded into PACE-8 (Milestones tab). Kept here as input for choosing targets.
+**Type:** Bug · **Status:** Done ([#12](https://github.com/SarahTTAN107/pace/pull/12))
 
-**Want:** the main job of Stats is to show progress, e.g. "how many hours have I put into this hobby, against a benchmark?"
+**Problem:** starting *Clock in* also started the *Countdown goal*, because the two modes shared one live session. (Listed as item 1 of the 27 Sep 2026 feedback round.)
 
-**Open question:** how to set a target for each hobby. Options to think about:
-
-| Option | How it works | Good for | Downside |
-|---|---|---|---|
-| **A. Weekly time budget** | Set e.g. 3 h/week per hobby. Stats shows this week's hours vs. budget and a streak of weeks met. | Steady habits (guitar, reading) | You have to pick a number up front |
-| **B. Milestone total** | Set a long-term total, e.g. 100 h or 1,000 h. Stats shows lifetime hours, % done and a projected finish date at your current pace. | Skills you want to build over months or years | Slow to move, little day-to-day feedback |
-| **C. Session frequency** | Set e.g. 4 sessions/week, regardless of length. | Hobbies where showing up matters more than duration | Ignores how much time you actually put in |
-| **D. Automatic baseline (no target)** | The app benchmarks each hobby against your own last 4 weeks' average. Stats shows "this week vs. your usual" (up/down %). | Starting out, when you don't know your target yet | Measures consistency, not ambition |
-
-**Recommendation:** ship **D** as the default so every hobby gets a benchmark with zero setup. Then add an optional per-hobby target where you pick **A (weekly hours)** or **B (milestone total)**, suggested from your baseline (e.g. "you average 2.5 h/week — set 3 h?"). Stats would show, per hobby:
-- hours this week / month / all time,
-- progress bar against the target (or baseline if none is set),
-- trend vs. last period, and for milestones a projected finish date.
+**Done:** one live session at a time (the simpler of the two options considered). It belongs to the mode that started it, and the other tab stays idle instead of mirroring it, so starting one mode never starts, pauses or resets the other. The goal chips and the *% of goal* bar show only in Countdown.
