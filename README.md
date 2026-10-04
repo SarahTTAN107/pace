@@ -23,7 +23,7 @@ To open sign-up to anyone with the link, set `allowSignup: true` in the `window.
 
 ### Upgrading an existing project
 
-**Diary pictures kept in IndexedDB (PACE-17):** no SQL needed. On the first launch of this version, each phone moves the diary pictures it holds out of localStorage into IndexedDB, checking each one before letting go of the old copy. If that cannot finish (no IndexedDB, or an older copy of the app still open in another tab), the pictures stay where they were and the next launch carries on. Nothing synced changes, so other devices are unaffected.
+**Diary pictures kept in IndexedDB (PACE-19):** no SQL needed. On the first launch of this version, each phone moves the diary pictures it holds out of localStorage into IndexedDB, checking each one before letting go of the old copy. If that cannot finish (no IndexedDB, or an older copy of the app still open in another tab), the pictures stay where they were and the next launch carries on. Nothing synced changes, so other devices are unaffected.
 
 **Photo/video viewer and video support:** no SQL needed. Deploy `vercel.json` together with `index.html`: its Content-Security-Policy gains `media-src`, and without it videos will not play. If you set a file size limit or allowed MIME types on the `pace-photos` bucket, allow `video/*` and at least 50 MB.
 

@@ -4,14 +4,15 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 ## Up next
 
-1. **PACE-17** · Diary media in IndexedDB (lasting fix). Finish it in [#33](https://github.com/SarahTTAN107/pace/pull/33), then merge.
-2. **PACE-20** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix.
-3. **PACE-21** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
-4. **PACE-18** · Settings and sign-in as inset lists. Small, finishes the redesign.
-5. **PACE-19** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
-6. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
+1. **PACE-19** · Diary media in IndexedDB (lasting fix). Finish it in [#33](https://github.com/SarahTTAN107/pace/pull/33), then merge.
+2. **PACE-22** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix.
+3. **PACE-23** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
+4. **PACE-18** · Timer becomes a sticky + button, three tabs. High priority; before the tab bar work it reshapes.
+5. **PACE-20** · Settings and sign-in as inset lists. Small, finishes the redesign.
+6. **PACE-21** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
+7. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
 
-## PACE-17 · Diary: media takes a long while to load
+## PACE-19 · Diary: media takes a long while to load
 
 **Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** In review ([#33](https://github.com/SarahTTAN107/pace/pull/33)): quick fix and lasting fix built and tested in a browser. Test on iPhone (list under *Risks and checks*) before merging.
 
@@ -37,7 +38,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Why the quick fix is not enough:** the diary copies themselves live in the wrong place. Each photo's ~780px diary copy (JPEG quality 0.62, saved as base64 text, roughly 100–150 KB) sits inside the one localStorage store with every session, which Safari caps at ~5 MB. That is only a few dozen photos. Past that, the app has to keep throwing copies away (`evictPhotos`: anything older than 30 days once the store passes 3 MB, then older than 7 days, then all of them when a save fails), and every launch downloads them again. Every save also rewrites the whole store, photos included, so the more photos are kept, the slower every tap that saves gets.
 
-**Lasting fix (built 4 Oct 2026, as planned after the review):** keep diary copies in IndexedDB (the "photo cupboard"), next to the full-size photos and videos already waiting there, and keep only references in localStorage (the "notebook"). The review kept this direction and added the safety rules below. The second half of the loading fix, tiny calendar pictures and loading only what is on screen, is PACE-20.
+**Lasting fix (built 4 Oct 2026, as planned after the review):** keep diary copies in IndexedDB (the "photo cupboard"), next to the full-size photos and videos already waiting there, and keep only references in localStorage (the "notebook"). The review kept this direction and added the safety rules below. The second half of the loading fix, tiny calendar pictures and loading only what is on screen, is PACE-22.
 
 - **Two shelves, so the only copy is never cleared by mistake.**
   - **Waiting shelf:** the existing `blobs` store, which already holds full-size photos and videos until they upload. Small copies of photos not yet uploaded go here too, keyed by a local id. Nothing on this shelf is ever cleared automatically. It empties only by a confirmed upload, a delete, sign-out or an account change.
@@ -98,11 +99,11 @@ Open work first, in the order it will be done; finished tickets are under **Done
   - Signing in as a different account on the same phone.
   - Backup export and import, with an old and a new backup file.
 
-## PACE-20 · Diary: tiny calendar pictures, load only what is on screen
+## PACE-22 · Diary: tiny calendar pictures, load only what is on screen
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (after PACE-17)
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (after PACE-19)
 
-**From:** the PACE-17 review (4 Oct 2026). Second half of the loading fix.
+**From:** the PACE-19 review (4 Oct 2026). Second half of the loading fix.
 
 **Problem:** each calendar square is about 50 px, but it shows the ~780px diary copy, roughly 15 times more data than it needs (about 120 KB instead of about 8 KB). Scrolling back a year in Media mode holds hundreds of these large pictures in memory. On an iPhone that can make scrolling stutter or make Safari reload the page. The diary also loads pictures for all six months it has rendered at once, not just the ones near the screen.
 
@@ -110,7 +111,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 - **A tiny picture for calendar squares:** about 160 px, about 8 KB, named after its diary copy (`3.jpg` → `3.cell.jpg`, `3.video.jpg` → `3.video.cell.jpg`).
   - **New photos and videos:** made when the media is added and uploaded with the diary copy, so every device gets it.
-  - **Existing photos:** each phone makes it from the diary copy the first time it downloads that copy, and keeps it on the copies shelf (PACE-17). Not uploaded, to keep this change small. Decide later whether one device should upload them for the others.
+  - **Existing photos:** each phone makes it from the diary copy the first time it downloads that copy, and keeps it on the copies shelf (PACE-19). Not uploaded, to keep this change small. Decide later whether one device should upload them for the others.
   - **Fallback:** if there is no tiny picture (e.g. media added by an older version of the app), the calendar uses the diary copy, as today.
 - **What uses which:** calendar squares use the tiny picture; the day sheet and Recently deleted keep the diary copy; the viewer keeps the full-size file.
 - **Load only what is near the screen:** months are loaded as they scroll close to view, not all at once.
@@ -125,15 +126,39 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Test on iPhone:** scrolling back a year in Media mode, memory and smoothness compared with before; a session with photos added by an older version of the app; removing a photo in an edit, then checking with storage-report.sql that its tiny picture is gone.
 
-## PACE-21 · Sync: a new upload can reuse a file name that is about to be erased
+## PACE-23 · Sync: a new upload can reuse a file name that is about to be erased
 
-**Type:** Bug · **Tag:** bug · **Priority:** Medium · **Status:** Open (found while testing PACE-17; not fixed there)
+**Type:** Bug · **Tag:** bug · **Priority:** Medium · **Status:** Open (found while testing PACE-19; not fixed there)
 
 **Problem:** a new photo or video takes the first file name in its session that no slot and no Recently deleted item uses (`uploadMedia`). An item erased for good (**Delete now**, or after 30 days) leaves Recently deleted at once, but its files are only removed from the bucket at the next sync, *after* that sync's uploads. So when, before a sync, a photo is erased for good and a new one is added at the same position in the same session (e.g. both offline), the new photo uploads under the erased one's name and the queued delete then removes it. The session points at a file that is gone: other devices cannot show it.
 
 **Fix:** treat names waiting in the delete queue (`purgeQueue`) as taken when choosing a name for a new upload. One line in `uploadMedia`; add a test for the offline case.
 
-## PACE-18 · Settings and sign-in: iOS Settings-style inset lists
+## PACE-18 · Timer becomes a sticky + button: three tabs
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (not started)
+
+**Problem:** the Timer takes a whole tab (Timer, Diary, Stats, You), even though starting or logging a session is one quick action you may want from anywhere.
+
+**Want:** a sticky **+** button on every screen replaces the Timer tab. The tab bar has three tabs: **Diary**, **Stats** and **You**. Stats later becomes the Milestones and companionship tab (PACE-8).
+
+**Scope (to refine):**
+
+- **+ button:** floats in the same place on every tab, above the tab bar and clear of the Diary's **↓ Today** button (PACE-14). It is at least 44 pt, with a VoiceOver label ("Start or log a session").
+- **Tapping +** opens a bottom sheet in the PACE-7 style: hobby picker, **Clock in**, **Countdown** (goal chips 25 / 45 / 60 m) and **Log a past session**. Grabber, drag down, tap outside or Esc to close.
+- **While a session runs:** the + turns into a live pill showing the hobby and running time (e.g. "🎾 12:34"), still on every tab. Tapping it reopens the timer sheet with pause, resume and stop. Closing the sheet never stops the session.
+- **Logged today** moves out of the Timer: into the + sheet, or onto today in the Diary. Decide which. Editing a session from there (PACE-11) keeps working.
+- **Launch tab:** the app opens on the Diary instead of the Timer.
+- **Session complete** and the undo toast (PACE-12) still appear after Stop, on whichever tab you are on.
+
+**Notes:**
+
+- Clock in and Countdown already run independently, one live session at a time (PACE-5, done), which is the simpler fit for a single pill.
+- Ties in with PACE-21 (iOS tab bar with icons, was PACE-7 step 6): the three-tab bar can be built in that style.
+- **Companionship** is a new idea for the Stats/Milestones tab, not yet in PACE-8. It needs its own scope.
+- No data model or sync change expected: the live session (`store.live`) and logging stay as they are.
+
+## PACE-20 · Settings and sign-in: iOS Settings-style inset lists
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Open (not started)
 
@@ -145,7 +170,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Scope:** You → hobbies, archive, Default Diary Mode, theme, Recently deleted, Your data, sync status, sign out; and the sign-in and code screens. 44 pt targets and VoiceOver labels throughout. No behaviour change.
 
-## PACE-19 · App-wide behaviour: tab bar icons, motion, accessibility pass
+## PACE-21 · App-wide behaviour: tab bar icons, motion, accessibility pass
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Open (not started)
 
@@ -165,7 +190,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Problem:** Stats shows totals and comparisons (this week vs last, weekly trend, split by hobby, time of day), but not *progress towards something*. It cannot answer "how far am I from my goal?" or celebrate reaching one.
 
-**Want:** replace the **Stats** tab with a **Milestones** tab. You set milestones per hobby, the app reports progress towards them, and an AI assistant helps you choose milestones and explains your progress.
+**Want:** replace the **Stats** tab with a **Milestones** tab. You set milestones per hobby, the app reports progress towards them, Wrapped-style recaps celebrate each month and year, and an AI assistant helps you choose milestones and explains your progress.
 
 **Scope:**
 
@@ -183,6 +208,15 @@ Open work first, in the order it will be done; finished tickets are under **Done
   - Suggest realistic milestones from your history ("you average 2.5 h/week on Tennis; 100 h would take about 9 months").
   - Write weekly or monthly progress reports in plain language, and point out patterns (best time of day, slipping hobbies).
   - Ask questions about your practice ("how much piano did I do in August?").
+- **Wrapped-style recaps** (was PACE-17)
+  - **Problem:** Stats reads like a dashboard: accurate but flat. Nothing makes looking back feel rewarding or worth sharing.
+  - **Story format** like Spotify Wrapped: full-screen cards, one big, bold insight per card. Tap or swipe to go forward or back, progress dashes at the top, close with drag down or Esc.
+  - **Headline cards:** total time, top hobby and its share, longest session, best streak, busiest day and month, favourite time of day ("You're a morning player"), most-used tags, first session of the period, photos and videos captured. Milestones and achievements reached in the period get their own cards.
+  - **Periods:** a monthly recap, and a year in review that unlocks at the end of the year. Optionally a recap for any month or year in the Diary's history.
+  - **Look:** big type and bold colour per card, from the hobby's colour (PACE-13) and the Water palette (PACE-7). Subtle motion, off under Reduce Motion.
+  - **Share:** save or share a card as an image.
+  - **AI is optional:** the AI progress reports can write a card's caption, but every recap works without AI.
+  - Uses the visible-sessions view (no trashed sessions, PACE-12). No data model or sync change needed for the recaps themselves.
 - **Keep from Stats:** the useful parts (split by hobby, time of day), moved into Milestones or a per-hobby detail view, so nothing is lost.
 - **Design:** built in the PACE-7 iOS style from the start (grouped cards, system font, 44 pt targets, VoiceOver summaries for every chart).
 
@@ -194,7 +228,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 4. **CSP.** `vercel.json` `connect-src` only allows the Supabase project today; the AI call should go through Supabase so it stays that way.
 5. **Offline.** Milestones and achievements work offline; AI features show as unavailable without a connection.
 
-**Replaces:** PACE-7 step 4 (Stats redesign, paused) and the Stats benchmark request from the 27 Sep 2026 feedback round, below.
+**Replaces:** PACE-7 step 4 (Stats redesign, paused), PACE-17 (Wrapped-style reporting, merged in above) and the Stats benchmark request from the 27 Sep 2026 feedback round, below.
 
 **Original ask (feedback round, 27 Sep 2026):** the main job of Stats is to show progress, e.g. "how many hours have I put into this hobby, against a benchmark?"
 
@@ -213,6 +247,10 @@ Open work first, in the order it will be done; finished tickets are under **Done
 - trend vs. last period, and for milestones a projected finish date.
 
 # Done
+
+## PACE-17 · Stats: Spotify Wrapped-style reporting
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Merged into PACE-8 (see *Wrapped-style recaps* there)
 
 ## PACE-16 · Storage: see what fills it, clear files of erased sessions
 
@@ -382,7 +420,7 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 
 ## PACE-7 · Apple design for the whole app (look and behaviour)
 
-**Type:** Improvement · **Tag:** improvement · **Status:** Done for steps 1–3 ([#13](https://github.com/SarahTTAN107/pace/pull/13) and later). Step 4 replaced by PACE-8; steps 5 and 6 moved to PACE-18 and PACE-19.
+**Type:** Improvement · **Tag:** improvement · **Status:** Done for steps 1–3 ([#13](https://github.com/SarahTTAN107/pace/pull/13) and later). Step 4 replaced by PACE-8; steps 5 and 6 moved to PACE-20 and PACE-21.
 
 **Problem:** the UI feels boxy. Borders and lines are too thick and bold, and the orange-and-grey palette clashes with the Water-element colours below.
 
@@ -403,7 +441,7 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
 1. [x] **Colours.** Light: silver background `#f0f3f8`, navy text `#0b1d36`, ocean-blue accent `#0a5fd1`. Dark: near-black navy `#0a0e17`, silver text `#f0f3f8`, blue accent `#3a86f0`. The intensity heatmap is blue; hobby colour choices list blues, navy and silver first and warm colours last (values unchanged, so saved hobbies keep their colour; new hobbies default to blue). Red appears only on destructive actions (Delete, Clear all data, Sign out confirm). The amber "changes waiting" sync dot stays as a status colour. Home Screen icons, manifest and loading screen follow.
    - [x] **"Time only" legend fix** (Diary → Media): the photo swatch was an empty box, identical to a day with nothing logged. The legend now reads *Photo or video* (filled swatch), *Time only* and *Nothing logged*.
 2. [x] **Timer:** Apple system font and iOS text sizes, sentence-case labels; white grouped cards with hairline separators; segmented control for Clock in / Countdown and for the 1–5 rating; filled, tinted and grey pill buttons; thin goal progress bar.
-   - "Log a past session" and "Session complete" are bottom sheets with a grabber. Drag the header down, tap outside or press Esc to close. For a past session that keeps the draft (Cancel throws it away); for a finished session it leaves the session paused, so *Resume session* or *Stop and log* picks it up again.
+   - "Log a past session" and "Session complete" are bottom sheets with a grabber. Drag the header down, tap outside or press Esc to close. For a past session that keeps the draft (Cancel throws it away); for a finished session it leaves the session paused, so *Resume* or *Stop and log* picks it up again.
    - Every control is at least 44 pt; press feedback shrinks buttons slightly (off under Reduce Motion). Steppers, swatches, media tiles and toggles have VoiceOver labels and pressed states; the clock is a timer region and the goal bar a progress bar.
    - The header and tab bar are unchanged until step 6.
 3. [x] **Diary:** large month title with grey round arrows; segmented control for Intensity / Blend / Media; the calendar sits in a white card with rounded day tiles and no outlines, today marked by a blue ring; sentence-case legend; "This month" total in its own card.
@@ -413,8 +451,8 @@ So a user who deletes the wrong thing, or saves a wrong edit, cannot get it back
    - The full-screen photo viewer uses the same type, a blue Done and Download, and closes with a downward swipe as well as Esc.
    - Day tiles are real buttons with VoiceOver labels ("20 September, 1h 15m in 2 sessions, with photos"); every control is at least 44 pt.
 4. [ ] ~~**Stats:** grouped cards, iOS type scale.~~ **Paused:** the Stats tab is being replaced by the Milestones tab (PACE-8), which will be built in this style from the start.
-5. [ ] ~~**Settings and sign-in:** iOS Settings-style inset lists.~~ **Moved** to PACE-18.
-6. [ ] ~~**App-wide behaviour:** iOS tab bar with icons, 44 pt targets, motion (respecting reduced motion) and accessibility pass.~~ **Moved** to PACE-19.
+5. [ ] ~~**Settings and sign-in:** iOS Settings-style inset lists.~~ **Moved** to PACE-20.
+6. [ ] ~~**App-wide behaviour:** iOS tab bar with icons, 44 pt targets, motion (respecting reduced motion) and accessibility pass.~~ **Moved** to PACE-21.
 
 ## PACE-5 · Timer: Clock in and Countdown run independently
 
