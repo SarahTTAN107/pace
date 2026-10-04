@@ -2,6 +2,34 @@
 
 Open feedback and ideas, newest first. Move an item to a PR when work starts.
 
+## PACE-20 · Timer: remove the in-session Note button
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Low · **Status:** Done ([#36](https://github.com/SarahTTAN107/pace/pull/36))
+
+**Problem:** while a session ran, *Attach to this session* offered **Photo or video** and **Note**. Note only added an empty "Note at wrap-up" placeholder and said "write it at wrap-up". The note itself could only be typed in **Session complete**, which already has a Note field, so the button was an extra tap that did nothing.
+
+**Shipped:**
+
+- **Attach to this session** has only **Photo or video**, at full width.
+- **Notes** are written in Session complete, after **Stop and log**. That sheet is unchanged.
+- A session started before the update that already has a Note placeholder still shows it in *Attached*, where it can be removed as before.
+- No data model, sync or README change.
+
+## PACE-19 · Timer: pause a session without logging it
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done ([#35](https://github.com/SarahTTAN107/pace/pull/35))
+
+**Problem:** people sometimes take a short break during a session, e.g. 5 minutes to talk to someone. The only button while a session ran was **Stop and log**, which ends the session and opens Session complete straight away.
+
+**Shipped:**
+
+- **Two buttons, like a music player.** Once a session has started, the single Start button becomes a pair: **❚❚ Pause** (tinted) or **▶ Resume** (filled blue) on the left, **■ Stop and log** on the right. Before a session starts there is still one full-width **▶ Start session**.
+- **Pause** freezes the clock and keeps the session open; nothing is logged. The status line reads "Paused · *hobby*". **Resume** carries on from the paused time.
+- **Stop and log** works while running or paused and opens Session complete as before. Before, a paused session had to be resumed before it could be stopped.
+- **Attach to this session** stays available while paused.
+- **No time lost:** pausing keeps the exact elapsed time, not the last whole second shown, so pausing many times does not shorten the session.
+- No data model, sync or README change: the live session (`store.live`) already had a paused state (`accum` with `startedAt: null`).
+
 ## PACE-18 · Timer becomes a sticky + button: three tabs
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (not started)
@@ -25,6 +53,7 @@ Open feedback and ideas, newest first. Move an item to a PR when work starts.
 - Ties in with PACE-7 step 6 (iOS tab bar with icons): the three-tab bar can be built in that style.
 - **Companionship** is a new idea for the Stats/Milestones tab, not yet in PACE-8. It needs its own scope.
 - No data model or sync change expected: the live session (`store.live`) and logging stay as they are.
+- Pause / Resume and Stop and log already exist on the Timer (PACE-19); the timer sheet can reuse that pair.
 
 ## PACE-17 · Stats: Spotify Wrapped-style reporting
 
