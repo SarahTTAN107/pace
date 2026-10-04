@@ -23,6 +23,8 @@ To open sign-up to anyone with the link, set `allowSignup: true` in the `window.
 
 ### Upgrading an existing project
 
+**Diary pictures kept in IndexedDB (PACE-17):** no SQL needed. On the first launch of this version, each phone moves the diary pictures it holds out of localStorage into IndexedDB, checking each one before letting go of the old copy. If that cannot finish (no IndexedDB, or an older copy of the app still open in another tab), the pictures stay where they were and the next launch carries on. Nothing synced changes, so other devices are unaffected.
+
 **Photo/video viewer and video support:** no SQL needed. Deploy `vercel.json` together with `index.html`: its Content-Security-Policy gains `media-src`, and without it videos will not play. If you set a file size limit or allowed MIME types on the `pace-photos` bucket, allow `video/*` and at least 50 MB.
 
 **Recently deleted:** run this once **before** deploying the `index.html` that adds Recently deleted (re-running the whole `supabase-schema.sql` also works):
@@ -102,11 +104,14 @@ What protects the data, in order of how much it matters:
 - **Archived hobbies** sync as `hobbies.archived = true`. They leave the timer picker but stay in the diary, stats and "Split by hobby" with their name and colour. Restore them from **You → Archived**, or type the same name into Add a hobby. Only an archived hobby can be deleted outright (two taps), and deleting it leaves its past sessions unlabelled.
 - **Deletions travel as tombstones** (`deleted: true` rows), never hard deletes. That is what stops another open tab or a second device re-uploading something you just erased. **Clear all data** writes tombstones for every session and hobby, removes the photo objects, and only then resets the phone; if the cloud step fails it deletes nothing and tells you so.
 - **The first launch pushes whatever is already on the phone** up to the cloud.
-- **Photos** are compressed to about 780px for the diary and uploaded to the private bucket at `<user_id>/<session_id>/<n>.jpg`, plus a full-size copy (up to 2400px) at `<n>.full.jpg`. The small copies come back through signed URLs when you open a day or view the Photos heatmap; the full-size one only when you enlarge or download the photo. A photo that fails to upload stays on the phone and retries on the next sync.
+- **Photos** are compressed to about 780px for the diary and uploaded to the private bucket at `<user_id>/<session_id>/<n>.jpg`, plus a full-size copy (up to 2400px) at `<n>.full.jpg`. A phone that does not have a small copy fetches it once, through a signed URL, when a screen first shows it (the Media diary, a day, Recently deleted), then keeps it; the full-size one only when you enlarge or download the photo. A photo that fails to upload stays on the phone and retries on the next sync.
 - **Videos** (up to 50 MB each, the Supabase free-plan upload limit) are uploaded to `<n>.video`, with a still frame at `<n>.video.jpg` that the diary and heatmap show. `photo_paths` stores that still frame's path, so no schema change is needed, and an older copy of the app shows the still instead of breaking.
-- **Until they upload, videos and full-size photos wait in the browser's IndexedDB**, not localStorage (Safari's ~5 MB would not hold them). Once uploaded, the phone's copy is deleted and the bucket is the only copy. Enlarging or downloading them then needs a connection; the small photo copy still works offline.
+- **Pictures live in the browser's IndexedDB**, not localStorage (Safari gives localStorage ~5 MB, a few dozen photos). localStorage keeps only the diary text and the name of each picture, so it stays small and saves stay fast however many photos there are. IndexedDB has two shelves:
+  - **Waiting:** videos, full-size photos and diary pictures not uploaded yet. Nothing here is cleared on its own; it leaves only after a confirmed upload, a delete, signing out or a different account signing in. Once uploaded, videos and full-size photos are deleted from the phone and the bucket is the only copy, so enlarging or downloading them needs a connection.
+  - **Copies:** the small diary pictures of uploaded media, each also in the bucket. They stay, so the diary opens without downloading. Past 150 MB, the pictures viewed longest ago are cleared first, and are fetched again if needed.
+- **Without IndexedDB** (some private-browsing modes), the app works as before: pictures not uploaded yet are kept in localStorage, and fetched pictures are kept in memory until the app closes.
 - **Enlarge and download:** in the Diary, open a day and tap a session, its thumbnail or **Expand**. Photos and videos fill the screen (swipe, the arrows or ← → to move between them, Esc to close), with the full note and tags below. **Download** saves the largest copy available. On a phone it opens the share sheet, so **Save Image / Save Video** puts it in Photos; on a computer it downloads the file.
-- **Phone storage never silently fills.** Safari gives the app ~5 MB. Once a photo is safely in the bucket its local copy is only a cache: past ~3 MB, cached photos older than 30 days are dropped; if a save would still hit the limit, older uploaded photos go first. Photos not yet uploaded are never dropped.
+- **Phone storage never silently fills.** Only the copies shelf can grow, and it is capped (see above). Should localStorage ever hit Safari's limit (only possible without IndexedDB), uploaded pictures kept there go first; pictures not yet uploaded are never dropped.
 
 ## Storage: what fills it, and keeping it lean
 
@@ -156,6 +161,6 @@ Your diary belongs to your **email account**, not to a browser. There is no pass
 
 Vercel serves files and never sees your log. Supabase holds your rows under your account, readable only by you — that *is* the backup. With a recovery email attached there is nothing to export: clear Safari, switch domains or change phones, sign in with the code, and the diary comes back.
 
-**Download a copy / Merge a copy** remain in Settings as an optional personal archive. Merging now combines row-by-row (newest wins, deletions respected) instead of replacing the phone's data, so an old file can't roll anything back.
+**Download a copy / Merge a copy** remain in Settings as an optional personal archive. The file includes the diary pictures this phone holds, above all any not uploaded yet; merging a file moves its pictures into IndexedDB. Merging now combines row-by-row (newest wins, deletions respected) instead of replacing the phone's data, so an old file can't roll anything back.
 
 On the Supabase free plan there are no automatic database backups; if you want a second safety net, upgrade to Pro (daily backups) or download a copy occasionally.

@@ -6,13 +6,14 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 1. **PACE-17** · Diary media in IndexedDB (lasting fix). Finish it in [#33](https://github.com/SarahTTAN107/pace/pull/33), then merge.
 2. **PACE-20** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix.
-3. **PACE-18** · Settings and sign-in as inset lists. Small, finishes the redesign.
-4. **PACE-19** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
-5. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
+3. **PACE-21** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
+4. **PACE-18** · Settings and sign-in as inset lists. Small, finishes the redesign.
+5. **PACE-19** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
+6. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
 
 ## PACE-17 · Diary: media takes a long while to load
 
-**Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** In progress ([#33](https://github.com/SarahTTAN107/pace/pull/33)): quick fix done; lasting fix next, in the same PR. Do not merge until it ships.
+**Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** In review ([#33](https://github.com/SarahTTAN107/pace/pull/33)): quick fix and lasting fix built and tested in a browser. Test on iPhone (list under *Risks and checks*) before merging.
 
 **Problem:** in the Diary, photo and video thumbnails take a long time to appear, especially in Media mode. The phone keeps only recent diary copies of uploaded photos and downloads the rest from Supabase when they are needed. That download was slow for four reasons:
 
@@ -36,7 +37,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Why the quick fix is not enough:** the diary copies themselves live in the wrong place. Each photo's ~780px diary copy (JPEG quality 0.62, saved as base64 text, roughly 100–150 KB) sits inside the one localStorage store with every session, which Safari caps at ~5 MB. That is only a few dozen photos. Past that, the app has to keep throwing copies away (`evictPhotos`: anything older than 30 days once the store passes 3 MB, then older than 7 days, then all of them when a save fails), and every launch downloads them again. Every save also rewrites the whole store, photos included, so the more photos are kept, the slower every tap that saves gets.
 
-**Lasting fix (planned, revised 4 Oct 2026 after review):** keep diary copies in IndexedDB (the "photo cupboard"), next to the full-size photos and videos already waiting there, and keep only references in localStorage (the "notebook"). The review kept this direction and added the safety rules below. The second half of the loading fix, tiny calendar pictures and loading only what is on screen, is PACE-20.
+**Lasting fix (built 4 Oct 2026, as planned after the review):** keep diary copies in IndexedDB (the "photo cupboard"), next to the full-size photos and videos already waiting there, and keep only references in localStorage (the "notebook"). The review kept this direction and added the safety rules below. The second half of the loading fix, tiny calendar pictures and loading only what is on screen, is PACE-20.
 
 - **Two shelves, so the only copy is never cleared by mistake.**
   - **Waiting shelf:** the existing `blobs` store, which already holds full-size photos and videos until they upload. Small copies of photos not yet uploaded go here too, keyed by a local id. Nothing on this shelf is ever cleared automatically. It empties only by a confirmed upload, a delete, sign-out or an account change.
@@ -51,12 +52,12 @@ Open work first, in the order it will be done; finished tickets are under **Done
 - **One-time move, done safely.** On the first launch of the new version, each base64 copy in the notebook is written to the cupboard, read back to check it, and only then removed from the notebook. It runs in small batches and picks up where it stopped on the next launch. If the cupboard fails, copies stay in the notebook and nothing is lost.
 - **Account changes.** Sign-out already empties the cupboard. Signing in as a **different** account (after an expired session) blanks the notebook today but leaves the cupboard, so the previous person's photos stay on the phone. Empty both shelves in that case too, and clear the in-memory copies from the quick fix at sign-out and on an account change.
 - **Size cap on the copies shelf only:** about 150 MB. When it is passed, the least recently viewed copies are cleared first (their "last viewed" date is updated at most once a day, to avoid extra writes). The waiting shelf has no cap.
-- **Fallback:** if the cupboard cannot be opened (some private-browsing modes, very old Safari), the app keeps today's behaviour: copies in the notebook, trimmed by `evictPhotos`. It never stops working.
-- **Showing a copy:** the diary reads the copies for the months it shows from the cupboard in one go, and shows them through in-memory image links (`blob:`, already allowed by the site's Content-Security-Policy, so no `vercel.json` change). Only copies missing from the cupboard are downloaded, with the quick fix's batched, parallel download, and saved to the copies shelf as they arrive.
+- **Fallback:** if the cupboard cannot be opened (some private-browsing modes, very old Safari, or an older copy of the app holding the database open in another tab), photos not uploaded yet stay in the notebook as before, and downloaded copies are kept in memory only, until the app closes. Built that way rather than writing downloads back into the notebook, which could fill it and set off "Phone storage full". It never stops working, and the next launch tries the cupboard again.
+- **Showing a copy:** every screen that shows a picture asks for it (the Media diary, the Timer's sessions, a day, the viewer, the edit sheet, Recently deleted, the running session), and one loader reads all of them from the cupboard in one go, showing them through in-memory image links (`blob:`, already allowed by the site's Content-Security-Policy, so no `vercel.json` change). Only copies missing from the cupboard are downloaded, with the quick fix's batched, parallel download, and saved to the copies shelf as they arrive.
 - **Media days before copies arrive:** the calendar marks a day as *Photo or video* from `photoPaths`, not from loaded pictures, so Media mode shows the right days at once, with a placeholder until each picture loads.
 - **Backup file (*Download a copy*):** today it is the notebook as it is, pictures included. After the move it must read the pictures back from the cupboard, so a backup still holds them, above all photos not yet uploaded. Importing a backup made by an older version moves its pictures into the cupboard.
 - **Removing copies:** deleting a session or media item, emptying Recently deleted (PACE-12), the erased-session sweep (PACE-16) and *Clear everything* also delete the matching copies.
-- **Retire the workarounds when the cupboard works:** `evictPhotos`, the 3 MB rule in sync and the "Phone storage full" path for photos then stay only as the fallback. `ensurePhotos`/`fillPhotos` from the quick fix become the cupboard loader.
+- **Retire the workarounds when the cupboard works:** `evictPhotos`, the 3 MB rule in sync and the "Phone storage full" path for photos then stay only as the fallback. `ensurePhotos`/`fillPhotos` from the quick fix are replaced by that loader (`pic()`/`loadPics()`), so Intensity and Blend modes no longer download pictures they do not show.
 
 **Security and privacy:**
 
@@ -71,6 +72,18 @@ Open work first, in the order it will be done; finished tickets are under **Done
 | Long-lasting signed links (days, not 10 minutes) | The browser could reuse them, but a leaked link would work for days |
 | Supabase image resizing | Only on paid plans |
 | Store photos in the database | Fills the 500 MB database and slows every sync |
+
+**Tested (4 Oct 2026):** the real page in headless Chromium, under the site's Content-Security-Policy, with a fake Supabase (sign-in, database, storage). 50 checks pass, including:
+
+- **One-time move** from an old-version phone (v1 database, pictures in localStorage): nothing left in localStorage, uploaded pictures keep only their path, unsent ones get their key, the database upgrades to version 2.
+- **Uploads:** a photo not yet uploaded reaches the bucket with its exact bytes, under a new name when a removed photo still holds the old one. A video uploads with its still, and leaves the waiting shelf afterwards.
+- **No repeat downloads:** only the picture missing from the phone is downloaded, and a relaunch downloads nothing.
+- **Clean-up:** the uploaded copy leaves the waiting shelf at the next launch; a photo not yet uploaded stays.
+- **Edits:** a removed photo shows in Recently deleted, and Undo brings it back with every copy kept. Erasing a session removes its copies.
+- **Account change:** a different account signing in empties both shelves and memory.
+- **Backups:** the file holds the pictures, with the original bytes; merging an old-format backup moves its pictures into the cupboard.
+- **Cap:** over the cap, only the least recently viewed copy is cleared.
+- **Fallbacks:** with no IndexedDB, photos stay in localStorage, still upload and still show. With the upgrade blocked by an old tab, nothing is lost and the next launch finishes the move.
 
 **Risks and checks:**
 
@@ -111,6 +124,14 @@ Open work first, in the order it will be done; finished tickets are under **Done
 **Cost:** about 8 MB of bucket space per 1,000 photos, out of the free plan's 1 GB. Fewer and smaller downloads also use less of the free plan's monthly download allowance.
 
 **Test on iPhone:** scrolling back a year in Media mode, memory and smoothness compared with before; a session with photos added by an older version of the app; removing a photo in an edit, then checking with storage-report.sql that its tiny picture is gone.
+
+## PACE-21 · Sync: a new upload can reuse a file name that is about to be erased
+
+**Type:** Bug · **Tag:** bug · **Priority:** Medium · **Status:** Open (found while testing PACE-17; not fixed there)
+
+**Problem:** a new photo or video takes the first file name in its session that no slot and no Recently deleted item uses (`uploadMedia`). An item erased for good (**Delete now**, or after 30 days) leaves Recently deleted at once, but its files are only removed from the bucket at the next sync, *after* that sync's uploads. So when, before a sync, a photo is erased for good and a new one is added at the same position in the same session (e.g. both offline), the new photo uploads under the erased one's name and the queued delete then removes it. The session points at a file that is gone: other devices cannot show it.
+
+**Fix:** treat names waiting in the delete queue (`purgeQueue`) as taken when choosing a name for a new upload. One line in `uploadMedia`; add a test for the offline case.
 
 ## PACE-18 · Settings and sign-in: iOS Settings-style inset lists
 
