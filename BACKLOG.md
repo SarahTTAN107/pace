@@ -14,7 +14,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 ## PACE-26 · Diary: tap a day to play its sessions as a story
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** In progress (branch `claude/ecstatic-volta-gheeqv`, preview: https://pace-git-claude-ecstatic-volta-gheeqv-runo3.vercel.app)
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** In progress ([#41](https://github.com/SarahTTAN107/pace/pull/41), preview: https://pace-git-claude-ecstatic-volta-gheeqv-runo3.vercel.app)
 
 **From:** owner request, 8 Oct 2026: "pressing on a date in Diary opens its sessions like an Instagram story, with the sessions as ordered tabs at the top that light up as you move". Reviewed the same day; mockup: https://claude.ai/artifact/AfQMhrYZeSGQg2Sw5o9etR
 
