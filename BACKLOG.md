@@ -4,7 +4,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 ## Up next
 
-1. **PACE-25** · One Show media switch, on by default; Blend removed. Built and tested on a branch: merge, then check on iPhone. It puts photos in front of everyone, which makes PACE-22 (next) matter more.
+1. **PACE-25** · One Show memories switch, on at every launch; Blend removed. Built and tested on a branch: merge, then check on iPhone. It puts photos in front of everyone, which makes PACE-22 (next) matter more.
 2. **PACE-22** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix (PACE-19, done).
 3. **PACE-23** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
 4. **PACE-18** · Timer becomes a sticky + button, three tabs. High priority; before the tab bar work it reshapes.
@@ -12,62 +12,53 @@ Open work first, in the order it will be done; finished tickets are under **Done
 6. **PACE-21** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
 7. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
 
-## PACE-25 · Diary: one Show media switch, on by default; Blend removed
+## PACE-25 · Diary: one Show memories switch, on at every launch; Blend removed
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Built and tested (8 Oct 2026) on branch `claude/pace-24-show-media`; not merged yet
 
-**From:** owner request, 8 Oct 2026. Numbered PACE-24 while in progress; renumbered when `main` used 24. First asked as "move Media to the middle of the switch and make it the default"; reshaped the same day into one **Show media** switch with the time shown as a ring. Mockup: https://claude.ai/artifact/YFSaS2wE3CAaav1ZS1eHz7
+**From:** owner request, 8 Oct 2026. Numbered PACE-24 while in progress; renumbered when `main` used 24. First asked as "move Media to the middle of the switch and make it the default". Reshaped the same day, in two rounds:
+
+1. One switch instead of three modes, with a ring around each photo showing the day's time (mockup: https://claude.ai/artifact/YFSaS2wE3CAaav1ZS1eHz7). Built, then changed:
+2. **Final:** the switch is called **Show memories**; on is the Media view as it was, with no ring; off is Intensity; and it is on every time the app opens, for new and existing users alike.
 
 **Why:** Media, where each day shows a photo or video from that day, is the part of the diary most of Pace's intended users will find most attractive. It was the last of three modes, and the Diary only showed it if you picked it, so many people never saw it.
 
 **Problem (before):**
 
 - The Diary switch read **Intensity / Blend / Media**, with Media last.
-- The Diary opened in Intensity: new accounts started with `prefs.heat: 'intensity'`, and a separate *You → Default Diary Mode* row was the only way to change that.
-- Media and Intensity were separate views: in Media, a photo hid how much time that day had, and days without a photo were a flat blue.
+- The Diary opened in Intensity unless *You → Default Diary Mode* said otherwise.
 
 **Built:**
 
-- **Show media switch** replaces the Intensity / Blend / Media control at the top of the Diary. The whole row is the switch (44 pt); VoiceOver reads "Show media, switch, on".
-- **Show media on (the default):**
-  - **Photo days** show the photo inside a ring. The ring's thickness shows the day's time in three steps (under 56m, under 1h 52m, more; the same 2h 50m scale as Intensity), in blue, or in the hobby's colour when one is picked (PACE-15).
-  - **Days without a photo** keep their Intensity colour. A diary with no photos yet looks exactly like Intensity, so a new account never opens on an empty-looking calendar.
-- **Show media off:** Intensity, as before.
-- **Today** is a filled blue circle behind the date, like the iOS Calendar, instead of a blue ring, so it never reads as a time ring.
-- **Legend**, once under this month: with Show media, two rows, *No photo* (Less → More colours) and *Photo day* (thin → thick rings); without, the Intensity scale.
+- **Show memories switch** replaces the Intensity / Blend / Media control at the top of the Diary. The whole row is the switch (44 pt); VoiceOver reads "Show memories, switch, on".
+- **On:** the Media view, unchanged: photo days show their photo, days with time but no photo are soft blue, and the legend reads *Photo or video*, *Time only*, *Nothing logged*.
+- **Off:** Intensity, unchanged.
+- **On at every launch,** for new and existing accounts alike. Turning it off lasts while the app is open, like the hobby chips (PACE-15). It is not saved and not synced, so there is nothing to migrate and no message to show.
+- **Settings:** *You → Default Diary Mode* is removed; the switch replaces it.
 - **Blend removed.** Its useful part stays: under each month's calendar, with *All hobbies* and two or more hobbies that month, the hobbies with their time, most first (e.g. "Tennis · 3h 15m", "Guitar · 2h 30m").
-- **Saved and synced:** the switch is remembered for the account (`prefs.heat`: `photos` or `intensity`). *You → Default Diary Mode* is removed: one control instead of two.
-- **Existing accounts (decision 1, option B, extended to Blend):** once per account, at the first sync, a saved Intensity or Blend becomes Show media. A toast says "The Diary now shows your photos", with **Undo** for 6 seconds to turn it off. A marker (`prefs.mediaFirst`) syncs, so it never happens twice and turning Show media off later sticks on every device. It runs on the prefs as merged with the cloud's, never on a new device's defaults.
-- **Older copies of the app** keep working: the saved values are still `photos` and `intensity`. One that still saves Blend makes this version show media.
-- **No change** to Supabase, the schema, `vercel.json` or what syncs besides the one new key in the existing `prefs` JSON. Nothing to run.
+- **Older copies of the app** keep their three modes and their saved default until they update. This version ignores that saved value.
+- **No change** to Supabase, the schema, `vercel.json` or what syncs. Nothing to run.
 
 **Decisions made while building:**
 
-- **Ring inside the square, by thickness, not a glow around it.** With 4 px between ~45 px squares, a glow runs into its neighbours, and shades of blue on a thin line vanish on photos (worst on blue ones: pools, sea, sky). The cost: photos show at about 35 px instead of 45.
-- **Ring only on photo days;** other days already show time with their colour.
-- **Progress ring** (Apple Watch style, filling around the square) left for later: it needs a meaning for "full", which PACE-8's targets could give.
-- **Media in the middle** of a three-way switch: superseded, since there is no three-way switch any more.
-- **Decision 2** (hint for a diary with no photos): not needed, as above.
+- **No ring around photos** (owner, 8 Oct). Time on a photo day shows by turning the switch off.
+- **Not saved:** "always on" for everyone means a saved off would only be overridden at the next launch, so the switch is kept for the session only.
+- **Earlier ideas dropped:** Media in the middle of a three-way switch; a one-time switch of existing accounts with a message and Undo; Intensity colours on days without a photo; today as a filled circle. All were only needed by the earlier designs.
 
-**Tested (8 Oct 2026):** the real page in headless Chromium, under the site's Content-Security-Policy, with a fake Supabase (sign-in, database, photo storage). 36 checks pass:
+**Tested (8 Oct 2026):** the real page in headless Chromium, under the site's Content-Security-Policy, with a fake Supabase (sign-in, database, photo storage). 24 checks pass:
 
-- **New account:** opens with Show media on and no toast; the prefs saved to Supabase carry the marker.
-- **Photo days:** the downloaded picture sits 5 px inside the square; rings of 1.5, 2.75 and 4 px for 15m, 1h 30m and 2h 30m; no colour behind the ring. A day without a photo keeps its Intensity colour. Today is a filled circle. VoiceOver labels still say "with photos".
-- **Legend and months:** the two legend rows; each month's hobby list, hidden when a hobby is picked; with a hobby picked, the ring is in its colour.
-- **Switch off:** Intensity everywhere, one legend row, synced, still off after a relaunch.
+- **On at launch** for a new account and for accounts saved on Intensity or Blend (and in Dark), with no message, and their saved value left untouched in Supabase.
+- **On:** the old control is gone; downloaded photos fill their squares with no ring; today keeps its blue ring; a day without a photo is the soft blue; the Media legend; each month's hobby list.
+- **Hobby picked:** other hobbies' days are empty and the month's hobby list is hidden.
+- **Off:** Intensity colours and the Less → More legend; stays off when moving between tabs; writes nothing to Supabase; on again after a relaunch.
 - **Settings:** no *Default Diary Mode* row.
-- **Accounts on Intensity or Blend:** switched once, with the toast. Undo turns Show media off and syncs; a relaunch does not switch again.
-- **Account already on Media:** the marker is added silently; the dark theme is kept.
-- **Account that chose Intensity after the switch:** a new device keeps it off and writes nothing.
-- **An old phone** whose own saved Intensity is newer than the cloud's: switched once.
-- No page errors.
+- No page errors. The sign-in fix from `main` (#38) still works on this branch.
 
 **Still to check on iPhone after release:**
 
-- [ ] First open on an account set to Intensity: the toast shows once, and Undo works.
-- [ ] The switch row feels right; VoiceOver reads "Show media, switch".
-- [ ] Rings are readable on real photos, in Light and Dark.
-- [ ] A second device follows the switch after it syncs.
+- [ ] The Diary opens with Show memories on, on a phone that had Intensity saved.
+- [ ] The switch row feels right; VoiceOver reads "Show memories, switch".
+- [ ] Off and on again while the app is open, then reopen the app: it is on.
 
 **Follow-ups:** PACE-22 (tiny calendar pictures, loading only months near the screen) matters more now that the Diary opens with photos for everyone.
 
@@ -77,7 +68,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **From:** the PACE-19 review (4 Oct 2026). Second half of the loading fix.
 
-**Problem:** each calendar square is about 50 px, but it shows the ~780px diary copy, roughly 15 times more data than it needs (about 120 KB instead of about 8 KB). Scrolling back a year with Show media on (PACE-25) holds hundreds of these large pictures in memory. On an iPhone that can make scrolling stutter or make Safari reload the page. The diary also loads pictures for all six months it has rendered at once, not just the ones near the screen.
+**Problem:** each calendar square is about 50 px, but it shows the ~780px diary copy, roughly 15 times more data than it needs (about 120 KB instead of about 8 KB). Scrolling back a year with Show memories on (PACE-25) holds hundreds of these large pictures in memory. On an iPhone that can make scrolling stutter or make Safari reload the page. The diary also loads pictures for all six months it has rendered at once, not just the ones near the screen.
 
 **Want:**
 
@@ -96,7 +87,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Cost:** about 8 MB of bucket space per 1,000 photos, out of the free plan's 1 GB. Fewer and smaller downloads also use less of the free plan's monthly download allowance.
 
-**Test on iPhone:** scrolling back a year with Show media on, memory and smoothness compared with before; a session with photos added by an older version of the app; removing a photo in an edit, then checking with storage-report.sql that its tiny picture is gone.
+**Test on iPhone:** scrolling back a year with Show memories on, memory and smoothness compared with before; a session with photos added by an older version of the app; removing a photo in an edit, then checking with storage-report.sql that its tiny picture is gone.
 
 ## PACE-23 · Sync: a new upload can reuse a file name that is about to be erased
 

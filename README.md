@@ -23,7 +23,7 @@ To open sign-up to anyone with the link, set `allowSignup: true` in the `window.
 
 ### Upgrading an existing project
 
-**Diary opens with Show media (PACE-25):** no SQL needed. The Diary's Intensity / Blend / Media control becomes one Show media switch, remembered for the account in the existing `prefs` row. On each account's first sync with this version, a saved Intensity or Blend becomes Show media once, with Undo; after that the switch stays where it is put, on every device. A device still running an older copy of the app keeps its three modes until it updates.
+**Diary opens with Show memories (PACE-25):** no SQL needed. The Diary's Intensity / Blend / Media control becomes one Show memories switch (on: the media diary; off: Intensity). It is on every time the app opens and is not saved, so the old Default Diary Mode setting is no longer used. A device still running an older copy of the app keeps its three modes until it updates.
 
 **Diary pictures kept in IndexedDB (PACE-19):** no SQL needed. On the first launch of this version, each phone moves the diary pictures it holds out of localStorage into IndexedDB, checking each one before letting go of the old copy. If that cannot finish (no IndexedDB, or an older copy of the app still open in another tab), the pictures stay where they were and the next launch carries on. Nothing synced changes, so other devices are unaffected.
 
