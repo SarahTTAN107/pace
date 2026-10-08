@@ -4,12 +4,12 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 ## Up next
 
-1. **PACE-22** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix (PACE-19, done).
+1. **PACE-22** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix (PACE-19, done). Matters more now that PACE-26 is out: stories load full-screen pictures on every tap.
 2. **PACE-23** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
 3. **PACE-18** · Timer becomes a sticky + button, three tabs. High priority; before the tab bar work it reshapes.
 4. **PACE-20** · Settings and sign-in as inset lists. Small, finishes the redesign.
 5. **PACE-21** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
-6. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
+6. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building. Its Wrapped-style recaps can reuse the PACE-26 story view.
 
 ## PACE-22 · Diary: tiny calendar pictures, load only what is on screen
 
@@ -159,6 +159,78 @@ Open work first, in the order it will be done; finished tickets are under **Done
 - trend vs. last period, and for milestones a projected finish date.
 
 # Done
+
+## PACE-26 · Diary: tap a day to play its sessions as a story
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Done ([#41](https://github.com/SarahTTAN107/pace/pull/41), merged 8 Oct 2026)
+
+**From:** owner request, 8 Oct 2026: "pressing on a date in Diary opens its sessions like an Instagram story, with the sessions as ordered tabs at the top that light up as you move". Reviewed the same day; mockup: https://claude.ai/artifact/AfQMhrYZeSGQg2Sw5o9etR
+
+**Problem:** looking back at a day takes many taps. Tap the day, read the list, **Expand** one session, **Done**, then **Expand** the next. The viewer shows one session and cannot move on to the next. The photos, the part of the diary people like most (PACE-25), sit two taps deep.
+
+**Want:** tapping a day opens its sessions full screen, one after another. Name pills along the top list the day's sessions in order (e.g. 🧘 Pilates, 🎹 Piano, 🎹 Piano, Product Dev) and show where you are.
+
+**Decided (owner, 8 Oct, from the mockup):**
+
+- **Name pills** across the top, rather than progress bars or Instagram's plain dashes.
+- **The current pill fills in parts, one part per photo or video,** instead of a thin bar under it. The name turns dark where the fill has reached. A pill with several parts is wider (46 pt a part) so each part is visible.
+- **Pills can be tapped** to jump to that session. Taps on the picture go through every photo, then on to the next session.
+- **Built with the mockup's suggested settings** for the rest: no auto-play; after a day's last session, the next day; Edit, Delete and the list under •••.
+
+**Built:**
+
+- **Opening:** tapping any day with time opens its story at the first session, with Show memories on or off. With a hobby picked, only that hobby's sessions play, and moving on skips days without it. Sessions play in time order. Sessions in Recently deleted are left out.
+- **Pills:** past sessions slightly brighter than ones to come; the current pill fills one part per photo or video, sweeping across as you tap. When they don't all fit, the row scrolls sideways, keeps the current pill in the middle and fades the edge that runs off. A hobby without an emoji shows its colour dot.
+- **Moving:**
+  - Tap the right side (70%): next photo or video, then the next session, then the next day with sessions. Past the newest day, the story closes.
+  - Tap the left side (30%): back the same way. Before the oldest day, nothing happens.
+  - Tap a pill: that session, first photo. Swipe left or right: next or previous session.
+  - Swipe down, ✕ or Esc: close. Press and hold: the labels hide to show the whole picture, and a video pauses.
+  - Keyboard: ← → step, Shift with ← → moves a whole session.
+  - A new day shows its date ("Wed 7 Oct") for a moment.
+- **Header:** hobby mark, name, and e.g. "09:00 · 30m · photo 2 of 3".
+- **Photos:** the whole picture over a blurred copy of itself, never cropped. The diary copy shows at once; the full-size file replaces it when it has loaded (from the phone, or a signed link). The next photo loads ahead, so a tap shows it at once. Moving to a new day lets go of the previous day's full-size files.
+- **Videos:** play muted and loop, like Instagram, with a speaker button for sound. A tap moves on; holding pauses. There is no scrubbing.
+- **No photo:** a card in the hobby's colour with the duration, hobby, time and note.
+- **Underneath:** the note (a long one clamps to 4 lines; tap **More** for all of it), rating and tags, and the day: "Thu 8 Oct · 4 sessions · 3h 35m".
+- **••• menu:** See the day as a list (the existing day sheet), Edit session, Download photo or video, Delete session (to Recently deleted, with Undo; the story moves on to the next session).
+- **The day sheet stays.** Tapping a session in it opens the story at that session. This replaces the old one-session viewer, so there is one way to look at photos.
+- **First time:** a hint under the pills, "Tap a name to jump to that session", once per device, on a day with two or more sessions.
+- **Status bar** goes dark with the story and back after.
+- **Accessibility:** the pills are tabs ("Piano, 09:00, 30m, 2 of 4, photo 2 of 3"). Previous and Next buttons cover the two sides for VoiceOver and the keyboard. Each move is announced. Reduce Motion turns off the sweep, the slide between days and the opening zoom.
+- **No change** to Supabase, the schema, `vercel.json` or sync.
+
+**Not in this ticket:** auto-play; sharing a card as an image (PACE-8 recaps); scrubbing a video.
+
+**Still open (asked 8 Oct):**
+
+- How busy are days, and how many sessions have a photo? The SQL check is in the review. If most days have one session, the next-day reel is what makes this feel seamless.
+- Edit and Delete are now one tap further (••• first). Fine for reliving, slower for fixing a duration.
+- "Next day" means later in time, so from today you tap left to look back. Check it feels right.
+
+**Tested (8 Oct 2026):** the real page in headless Chromium under the site's Content-Security-Policy, local-only, with seeded sessions, photos, a full-size copy on the phone and a recorded video. 70 checks pass:
+
+- Opening, pills in time order with Recently deleted left out, the hint once per device, the status bar.
+- The pill fills in thirds for a 3-photo session and is wider. Tap right and left through photos and sessions; past the last session, the next day; past the newest, closed.
+- Tapping pills (mouse and touch), swipes, swipe down, press and hold, ← → and Shift.
+- Six sessions: the row scrolls, fades and keeps the current pill in view. Date chip on a new day.
+- Note card for a session without photos, More / Less on a long note, a hobby without an emoji.
+- The ••• menu: list, Edit, Delete with Undo, Esc closes only the menu. The day sheet's Expand opens the story at that session and closing returns to the sheet.
+- The full-size copy replaces the diary copy. The video plays muted and loops, the sound button, hold pauses it.
+- Hobby picked: only its sessions and days. Show memories off still opens a story. Reduce Motion, Dark.
+- No page errors; the other tabs still render.
+
+Not covered by these tests: signed links for photos that are only in Supabase (that code is unchanged, but check on iPhone).
+
+**Still to check on iPhone after release:**
+
+- [ ] Sign in, open the Diary, tap a day with several sessions: the pills, the fill, the hint.
+- [ ] Tap through a session with several photos, then on to the next session and the next day.
+- [ ] Photos from another device load (diary copy first, then sharp).
+- [ ] A video plays muted; the speaker button; hold to pause.
+- [ ] Tap a pill; swipe left and right; swipe down to close.
+- [ ] ••• → See the day as a list, Edit, Delete then Undo.
+- [ ] The status bar strip turns dark and back; VoiceOver reads the pills and Previous / Next.
 
 ## PACE-25 · Diary: one Show memories switch, on at every launch; Blend removed
 
