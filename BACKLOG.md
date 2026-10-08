@@ -160,6 +160,39 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 # Done
 
+## PACE-24 · Sign-in: "Send me a code" stays on the email screen
+
+**Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** Done ([#38](https://github.com/SarahTTAN107/pace/pull/38), merged 8 Oct 2026)
+
+**Case (8 Oct 2026, desktop):** pressing **Send me a code** did not open the screen to type the code. The email screen stayed, showing *"For security purposes, you can only request this after 17 seconds."* No way to sign in until that minute ran out, and the next press sent a new code that replaced the first.
+
+**Root cause:** Supabase emails an address at most once a minute. Inside that minute it refuses with *"you can only request this after N seconds"*. The app showed that text as is and stayed on the email screen, because the code screen only opened after a send that succeeded. But the refusal means a code *had* already gone to that address, so it was a dead end. Ways to land there:
+
+- The first press did not reach the code screen: its answer never came back, or the page reloaded, or the app was open in a second tab.
+- The button was pressed again while it showed **Working…**. Nothing stopped a second request. Before the fix, 3 presses sent 3 emails, and only the newest code works.
+
+Why the first press did not open the code screen on that desktop is not known. On a fresh desktop browser one press opens it, as it should.
+
+**Resolution (shipped in #38):**
+
+1. **The once-a-minute refusal opens the code screen**, with *"A code went to this address under a minute ago — enter that one."* The earlier code signs in.
+2. **Changing the email is left out:** there the limit is per account, so the earlier code may have gone to a different address. It shows *"Too many emails just now — try again in a minute."* and stays on the email screen.
+3. **Send and Confirm ignore presses while a request is out**, so one press sends one email.
+4. **No change** to Supabase, the email template, `vercel.json` or sync.
+
+**Tested (8 Oct 2026):** the real page in headless desktop Chromium, with a fake Supabase that keeps the once-a-minute rule. 11 checks pass. The old page reproduces the case exactly: *"…after 17 seconds"* on the email screen, and 3 emails for 3 presses. The new page:
+
+- One press opens the code screen, and the code signs in.
+- Repeat presses (click and Enter) during a slow send send 1 email and land on the code screen with no error.
+- Pressing 43 s after an earlier code opens the code screen with the new note, and that earlier code signs in.
+- Changing the email twice in a minute stays on the email screen with the plain message.
+- No page errors.
+
+**Still to check after release:**
+
+- [ ] On the desktop: sign in. If the first press still does not open the code screen, note what it shows (**Working…**, a message, or nothing) and whether a code email arrives.
+- [ ] Press **Send me a code** twice within a minute: the second press opens the code screen, and the first code works.
+
 ## PACE-19 · Diary: media takes a long while to load
 
 **Type:** Bug · **Tag:** bug · **Priority:** High · **Status:** Done ([#33](https://github.com/SarahTTAN107/pace/pull/33), merged 4 Oct 2026). Numbered PACE-17 while in progress; renumbered when `main` used 17 and 18.
