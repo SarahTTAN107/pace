@@ -17,7 +17,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **From:** the PACE-19 review (4 Oct 2026). Second half of the loading fix.
 
-**Problem:** each calendar square is about 50 px, but it shows the ~780px diary copy, roughly 15 times more data than it needs (about 120 KB instead of about 8 KB). Scrolling back a year in Media mode holds hundreds of these large pictures in memory. On an iPhone that can make scrolling stutter or make Safari reload the page. The diary also loads pictures for all six months it has rendered at once, not just the ones near the screen.
+**Problem:** each calendar square is about 50 px, but it shows the ~780px diary copy, roughly 15 times more data than it needs (about 120 KB instead of about 8 KB). Scrolling back a year with Show memories on (PACE-25) holds hundreds of these large pictures in memory. On an iPhone that can make scrolling stutter or make Safari reload the page. The diary also loads pictures for all six months it has rendered at once, not just the ones near the screen.
 
 **Want:**
 
@@ -36,7 +36,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Cost:** about 8 MB of bucket space per 1,000 photos, out of the free plan's 1 GB. Fewer and smaller downloads also use less of the free plan's monthly download allowance.
 
-**Test on iPhone:** scrolling back a year in Media mode, memory and smoothness compared with before; a session with photos added by an older version of the app; removing a photo in an edit, then checking with storage-report.sql that its tiny picture is gone.
+**Test on iPhone:** scrolling back a year with Show memories on, memory and smoothness compared with before; a session with photos added by an older version of the app; removing a photo in an edit, then checking with storage-report.sql that its tiny picture is gone.
 
 ## PACE-23 · Sync: a new upload can reuse a file name that is about to be erased
 
@@ -80,7 +80,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 **Want:** the same look as the iPhone Settings app. Grouped, rounded inset lists with hairline separators, rows with a label on the left and the value or control on the right, and sentence-case section captions above each group. Sign-in (email, then code) uses the same cards and pill buttons as the rest of the app.
 
-**Scope:** You → hobbies, archive, Default Diary Mode, theme, Recently deleted, Your data, sync status, sign out; and the sign-in and code screens. 44 pt targets and VoiceOver labels throughout. No behaviour change.
+**Scope:** You → hobbies, archive, theme, Recently deleted, Your data, sync status, sign out; and the sign-in and code screens. 44 pt targets and VoiceOver labels throughout. No behaviour change.
 
 ## PACE-21 · App-wide behaviour: tab bar icons, motion, accessibility pass
 
@@ -159,6 +159,56 @@ Open work first, in the order it will be done; finished tickets are under **Done
 - trend vs. last period, and for milestones a projected finish date.
 
 # Done
+
+## PACE-25 · Diary: one Show memories switch, on at every launch; Blend removed
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Done ([#40](https://github.com/SarahTTAN107/pace/pull/40), merged 8 Oct 2026)
+
+**From:** owner request, 8 Oct 2026. Numbered PACE-24 while in progress; renumbered when `main` used 24. First asked as "move Media to the middle of the switch and make it the default". Reshaped the same day, in two rounds:
+
+1. One switch instead of three modes, with a ring around each photo showing the day's time (mockup: https://claude.ai/artifact/YFSaS2wE3CAaav1ZS1eHz7). Built, then changed:
+2. **Final:** the switch is called **Show memories**; on is the Media view as it was, with no ring; off is Intensity; and it is on every time the app opens, for new and existing users alike.
+
+**Why:** Media, where each day shows a photo or video from that day, is the part of the diary most of Pace's intended users will find most attractive. It was the last of three modes, and the Diary only showed it if you picked it, so many people never saw it.
+
+**Problem (before):**
+
+- The Diary switch read **Intensity / Blend / Media**, with Media last.
+- The Diary opened in Intensity unless *You → Default Diary Mode* said otherwise.
+
+**Built:**
+
+- **Show memories switch** replaces the Intensity / Blend / Media control at the top of the Diary. The whole row is the switch (44 pt); VoiceOver reads "Show memories, switch, on".
+- **On:** the Media view, unchanged: photo days show their photo, days with time but no photo are soft blue, and the legend reads *Photo or video*, *Time only*, *Nothing logged*.
+- **Off:** Intensity, unchanged.
+- **On at every launch,** for new and existing accounts alike. Turning it off lasts while the app is open, like the hobby chips (PACE-15). It is not saved and not synced, so there is nothing to migrate and no message to show.
+- **Settings:** *You → Default Diary Mode* is removed; the switch replaces it.
+- **Blend removed.** Its useful part stays: under each month's calendar, with *All hobbies* and two or more hobbies that month, the hobbies with their time, most first (e.g. "Tennis · 3h 15m", "Guitar · 2h 30m").
+- **Older copies of the app** keep their three modes and their saved default until they update. This version ignores that saved value.
+- **No change** to Supabase, the schema, `vercel.json` or what syncs. Nothing to run.
+
+**Decisions made while building:**
+
+- **No ring around photos** (owner, 8 Oct). Time on a photo day shows by turning the switch off.
+- **Not saved:** "always on" for everyone means a saved off would only be overridden at the next launch, so the switch is kept for the session only.
+- **Earlier ideas dropped:** Media in the middle of a three-way switch; a one-time switch of existing accounts with a message and Undo; Intensity colours on days without a photo; today as a filled circle. All were only needed by the earlier designs.
+
+**Tested (8 Oct 2026):** the real page in headless Chromium, under the site's Content-Security-Policy, with a fake Supabase (sign-in, database, photo storage). 24 checks pass:
+
+- **On at launch** for a new account and for accounts saved on Intensity or Blend (and in Dark), with no message, and their saved value left untouched in Supabase.
+- **On:** the old control is gone; downloaded photos fill their squares with no ring; today keeps its blue ring; a day without a photo is the soft blue; the Media legend; each month's hobby list.
+- **Hobby picked:** other hobbies' days are empty and the month's hobby list is hidden.
+- **Off:** Intensity colours and the Less → More legend; stays off when moving between tabs; writes nothing to Supabase; on again after a relaunch.
+- **Settings:** no *Default Diary Mode* row.
+- No page errors. The sign-in fix from `main` (#38) still works on this branch.
+
+**Still to check on iPhone after release:**
+
+- [ ] The Diary opens with Show memories on, on a phone that had Intensity saved.
+- [ ] The switch row feels right; VoiceOver reads "Show memories, switch".
+- [ ] Off and on again while the app is open, then reopen the app: it is on.
+
+**Follow-ups:** PACE-22 (tiny calendar pictures, loading only months near the screen) matters more now that the Diary opens with photos for everyone.
 
 ## PACE-24 · Sign-in: "Send me a code" stays on the email screen
 
