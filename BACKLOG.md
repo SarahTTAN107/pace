@@ -4,12 +4,91 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 ## Up next
 
-1. **PACE-22** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix (PACE-19, done).
-2. **PACE-23** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
-3. **PACE-18** · Timer becomes a sticky + button, three tabs. High priority; before the tab bar work it reshapes.
-4. **PACE-20** · Settings and sign-in as inset lists. Small, finishes the redesign.
-5. **PACE-21** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
-6. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
+1. **PACE-25** · Media in the middle of the Diary switch, and the default mode. High priority and small; settle its two decisions first. It puts Media in front of everyone, which makes PACE-22 (next) matter more.
+2. **PACE-22** · Tiny calendar pictures, load only what is on screen. Second half of the loading fix (PACE-19, done).
+3. **PACE-23** · Upload name can clash with a file about to be erased. Small fix; a bug that loses a photo on other devices, so before the polish.
+4. **PACE-18** · Timer becomes a sticky + button, three tabs. High priority; before the tab bar work it reshapes.
+5. **PACE-20** · Settings and sign-in as inset lists. Small, finishes the redesign.
+6. **PACE-21** · Tab bar icons, motion and accessibility pass. Small; sets the style PACE-8 uses.
+7. **PACE-8** · Milestones tab. Biggest; settle its five decisions before building.
+
+## PACE-25 · Diary: Media in the middle, and the mode the Diary opens in
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Open (not started; written up 8 Oct 2026, waiting on decisions 1 and 2)
+
+**From:** owner request, 8 Oct 2026.
+
+**Why:** Media, where each day shows a photo or video from that day, is the part of the diary most of Pace's intended users will find most attractive. Today it is the last option in the switch, and the Diary only shows it if you pick it, so many people may never open it. Putting it in the middle and opening the Diary on it makes the media diary the first thing people see.
+
+**Problem:**
+
+- **Order:** the Diary switch reads **Intensity / Blend / Media**. Media sits last, at the edge, where it reads as the least important option.
+- **Default:** the Diary opens in Intensity. New accounts start with `prefs.heat: 'intensity'`, and anyone who never changed *Default Diary Mode* sees Intensity on every launch.
+- **Settings:** *You → Default Diary Mode* lists **Int / Blend / Media**, in the same order.
+
+**Want:**
+
+- **Media in the middle:** **Intensity / Media / Blend** in the Diary switch, and **Int / Media / Blend** in *Default Diary Mode*, so both read the same way.
+- **Media is the default:** the Diary opens in Media unless the person has chosen another default.
+  - New accounts, and a new device before its first sync, start in Media.
+  - Existing accounts: see decision 1.
+- **Unchanged:** what each mode shows, the hobby chips (PACE-15), the scroll and **↓ Today** (PACE-14), the legends and the day sheet. Picking a mode in the switch still lasts until the app is closed; only *Default Diary Mode* is saved.
+- **Saved value stays `photos`,** Media's internal id. Other devices and older copies of the app keep reading it as before.
+
+**Where it is in the code** (the app template inside the bundled `index.html`):
+
+- **Diary switch:** the `heatStyles` list, in the order Intensity, Blend, Media.
+- **Settings:** the `heatPrefOpts` list, in the order Int, Blend, Media.
+- **Default:** `prefs: { dark: false, heat: 'intensity' }` in `fresh()` and `load()`, and the `'intensity'` fallback where the Diary works out its mode (`s.heat || st.prefs.heat || 'intensity'`).
+
+**Decisions needed before building:**
+
+1. **Existing accounts.** Nearly every account already has `heat: 'intensity'` saved in Supabase (`prefs` table), because the old default is uploaded on the first sync. The app cannot tell that default apart from someone who chose Intensity on purpose.
+
+   | Option | What happens | Upside | Downside |
+   |---|---|---|---|
+   | **A. New accounts only** | Only accounts and devices with no saved setting start in Media | Never overrides a setting | Today's users never see the change, which misses the point |
+   | **B. One-time switch from Intensity** | Once per account, a saved Intensity becomes Media. Blend is left alone: it was never the default, so it was chosen. A synced marker stops it running twice. A one-time toast says "Diary now opens in Media. Change it in Settings." | Everyone who never chose sees Media; Blend users keep theirs; one tap to undo | Someone who chose Intensity on purpose is switched once |
+   | **C. Switch everyone** | Intensity and Blend both become Media once | Simplest to explain | Overrides choices people made on purpose |
+
+   **Recommendation:** B.
+
+2. **Media with no photos yet.** A diary without photos or videos opens on plain blue *Time only* days, which looks less inviting than Intensity's shading. That is the first impression for every new account.
+   - **a.** Leave it as it is.
+   - **b.** A short hint card above this month while the account has no photos or videos at all: "Add a photo or video when you log a session. It shows on its day here." It goes away for good once the first one is added.
+   - **c.** Open in Intensity until the first photo or video exists, then in Media.
+
+   **Recommendation:** b. It shows off the feature where it lives, and the Diary always opens the same way. (c) makes the default hard to predict.
+
+**Build notes:**
+
+- **Defaults never overwrite the cloud.** A fresh store starts with `heat: 'photos'` and an empty `prefsUpdatedAt`, as today, so a new device's default never replaces the account's saved setting.
+- **One-time switch (if B).** It runs on the merged prefs after a sync has pulled the cloud's copy, never on a fresh store. If `heat` is `'intensity'` and the marker (e.g. `prefs.mediaDefault: true`) is missing: set `heat: 'photos'`, set the marker, stamp `prefsUpdatedAt`, sync. Running it before the first pull would stamp a new device's defaults and overwrite the account's real settings (theme, tags).
+- **Older copies of the app** take the whole `prefs` JSON from the cloud, marker included, so the switch does not repeat. If one saves its prefs before pulling the marker, last write wins drops it and the switch can run once more. Rare, and acceptable.
+- **Loading.** Opening in Media loads pictures for the six months the Diary renders. PACE-19 made that fast (pictures come from IndexedDB; nothing downloads twice). PACE-22 makes it lighter on memory (tiny calendar pictures, only months near the screen). With Media as everyone's default, PACE-22 matters more, so it comes next.
+- **PACE-18:** once the app opens on the Diary instead of the Timer, Media becomes the first screen of the app.
+- **Accessibility:** the switch keeps its group label ("Colour the calendar by"), `aria-pressed`, and 44 pt targets; VoiceOver reads the new order.
+- **Nothing else changes:** no Supabase schema, no SQL to run, no `vercel.json` change. The marker is a new key in the existing `prefs.data` JSON.
+
+**Test:**
+
+- **New account:** the Diary opens in Media, Settings shows Media selected, and both read Intensity / Media / Blend.
+- **Existing account on Intensity (B):** switches to Media once, with the toast once. Choosing Intensity again in Settings sticks across relaunches and on a second device.
+- **Existing account on Blend:** stays in Blend, no toast.
+- **New device signing in to an account that chose Intensity after the switch:** stays in Intensity.
+- **Account with no photos (b):** the hint shows; it goes away after the first photo is added, on every device.
+- **iPhone:** open in Media with a year of photos: launch speed and smooth scrolling (ties to PACE-22).
+
+**Progress:**
+
+- [x] Ticket written, code located (8 Oct 2026)
+- [ ] Decisions 1 and 2 settled
+- [ ] Media in the middle: Diary switch and *Default Diary Mode*
+- [ ] Media as the default for new accounts and devices
+- [ ] One-time switch for existing accounts (if B)
+- [ ] Hint for a diary with no photos or videos (if b)
+- [ ] Tested in headless Chromium against a fake Supabase
+- [ ] Merged, checked on iPhone
 
 ## PACE-22 · Diary: tiny calendar pictures, load only what is on screen
 
