@@ -162,7 +162,7 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 ## PACE-28 · Timer: rating and tags in "Log a past session"
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done on branch `claude/confident-tesla-i317cl` (9 Oct 2026), not merged yet. Builds on PACE-27.
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done, in review ([#42](https://github.com/SarahTTAN107/pace/pull/42), opened 9 Oct 2026, with PACE-27). Builds on PACE-27.
 
 **From:** owner request, 9 Oct 2026.
 
@@ -209,7 +209,7 @@ That made logging after the fact feel second-class. It should not: logging the t
 
 ## PACE-27 · Timer: change the hobby in "Log a past session"
 
-**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done on branch `claude/confident-tesla-i317cl` (9 Oct 2026), not merged yet
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done, in review ([#42](https://github.com/SarahTTAN107/pace/pull/42), opened 9 Oct 2026, with PACE-28)
 
 **From:** owner request, 9 Oct 2026.
 
