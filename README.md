@@ -23,6 +23,8 @@ To open sign-up to anyone with the link, set `allowSignup: true` in the `window.
 
 ### Upgrading an existing project
 
+**Change the hobby in Log a past session (PACE-27):** no SQL needed. The past-session sheet gets the same hobby picker as the Timer. It starts on the Timer's hobby, and picking another one there does not change the Timer. Nothing synced changes.
+
 **Diary days open as stories (PACE-26):** no SQL needed. Tapping a day plays its sessions full screen, with name pills across the top; the day's list is under •••. Nothing synced changes, so a device still running an older copy of the app keeps opening the list until it updates.
 
 **Diary opens with Show memories (PACE-25):** no SQL needed. The Diary's Intensity / Blend / Media control becomes one Show memories switch (on: the media diary; off: Intensity). It is on every time the app opens and is not saved, so the old Default Diary Mode setting is no longer used. A device still running an older copy of the app keeps its three modes until it updates.

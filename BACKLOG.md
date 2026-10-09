@@ -160,6 +160,53 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 # Done
 
+## PACE-27 · Timer: change the hobby in "Log a past session"
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done on branch `claude/confident-tesla-i317cl` (9 Oct 2026), not merged yet
+
+**From:** owner request, 9 Oct 2026.
+
+**Case:** in **Log a past session**, the hobby could not be changed. The sheet showed the Timer's hobby as plain text, with *"To log another hobby, cancel and change it on the Timer first."* After picking the wrong hobby, there were two ways to fix it, both with extra taps:
+
+1. **Cancel, then start again.** Close the sheet, change the hobby on the Timer, open the sheet again and redo the day, time, length, note and photos. Cancel throws the draft away. Swiping the sheet down would have kept it, but nothing said so.
+2. **Add it anyway, then fix it in the Diary.** Open the day, ••• → Edit session, change the hobby, Save.
+
+**Root cause:** the sheet had no hobby control. It showed the Timer's hobby as a label, and **Add** always saved on the Timer's hobby. The Edit session sheet (PACE-11) already had a hobby picker, but the past-session sheet never got one.
+
+**Resolution:**
+
+- **A hobby picker** at the top of the sheet, the same as on the Timer and in Edit session: colour dot, emoji and name, and ⌄. It lists the active hobbies. The old footer is gone.
+- **Starts on the Timer's hobby,** so logging the usual hobby takes no extra taps.
+- **Part of the draft,** like the note and photos. Tapping outside, swiping down, Esc and switching tabs keep it. **Cancel** and **Add** clear it.
+- **The Timer is not changed.** The pick applies to this past session only. The Timer keeps its own hobby for the next Start.
+- **The newest choice wins.** Changing the hobby on the Timer, or adding a new one there, after a pick in the sheet makes the sheet open on the Timer's hobby again.
+- **Archived meanwhile:** if the picked hobby is archived before **Add**, the sheet goes back to the Timer's hobby. Archived hobbies are not offered, as on the Timer. A Timer hobby archived on another device still shows, marked "(archived)", as the Timer shows it.
+- **The toast names the hobby:** *"Added · Tennis · 45m 9 Oct"*, so you can see which hobby was logged.
+- **No change** to Supabase, the schema, `vercel.json` or sync. The pick is not saved; it lasts only while the app is open, like the rest of the draft.
+
+**Decisions made while building:**
+
+- **Separate from the Timer,** instead of also changing the Timer's hobby. Logging yesterday's Piano should not change what Start starts next. Say if the Timer should follow the sheet instead.
+- **No "+ New hobby…" in the sheet.** You still add hobbies on the Timer or under You. Swiping the sheet down keeps the draft while you do, and the sheet then opens on the new hobby. Can be added later if needed.
+
+**Tested (9 Oct 2026):** the real page in headless Chromium under the site's Content-Security-Policy, local-only. On the old page the sheet has no hobby control, only "Hobby · Pilates" and the footer. On the new page, 33 checks pass:
+
+- **The picker:** named "Hobby" for VoiceOver, at least 44 pt tall, opens on the Timer's hobby, lists the active hobbies (emoji in front of the name), and the old footer is gone.
+- **Picking Tennis:** the dot changes colour. **Add to diary** saves the session on Tennis with the right length, and the toast names Tennis. The Timer stays on Pilates. Logged today lists Tennis, and Edit session opens on Tennis.
+- **After Add,** the next draft starts on the Timer's hobby.
+- **The pick is kept** after tapping outside, Esc, swiping down, switching tabs, and an Add refused for zero length. **Cancel** clears it.
+- **Changing the hobby on the Timer,** or adding a new one there, wins over an earlier pick.
+- **A pick archived meanwhile** goes back to the Timer's hobby and is no longer offered. The header **Add** saves on the hobby shown.
+- **A photo** still attaches and saves with the picked hobby.
+- **A Timer hobby archived elsewhere** shows as "Reading (archived)", as on the Timer.
+- **Every tab renders,** with no page errors. Screenshots in Light and Dark.
+
+**Still to check on iPhone after release:**
+
+- [ ] Timer → **Log a past session** → tap Hobby: the iOS picker lists your hobbies with their emojis. Pick one and Add: the toast names it, and the Diary shows the session on that hobby.
+- [ ] The Timer still shows its own hobby afterwards.
+- [ ] Swipe the sheet down and open it again: the pick and the rest of the draft are still there.
+
 ## PACE-26 · Diary: tap a day to play its sessions as a story
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** High · **Status:** Done ([#41](https://github.com/SarahTTAN107/pace/pull/41), merged 8 Oct 2026)
