@@ -160,6 +160,53 @@ Open work first, in the order it will be done; finished tickets are under **Done
 
 # Done
 
+## PACE-28 · Timer: rating and tags in "Log a past session"
+
+**Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done on branch `claude/confident-tesla-i317cl` (9 Oct 2026), not merged yet. Builds on PACE-27.
+
+**From:** owner request, 9 Oct 2026.
+
+**Case:** a session timed on the Timer ends in **Session complete**, which asks *How did it go?* (1 to 5) and *What did you work on?* (Easy, Hard, Technique, Long, Short, With friends, and your own tags). **Log a past session** asked for neither: only the hobby, day, time, length, note and photos. Every past session was saved unrated and untagged, and the only way to add them was to open it again in Edit session.
+
+That made logging after the fact feel second-class. It should not: logging the time is what matters, however it gets logged.
+
+**Root cause:** the past-session sheet had no rating or tag controls, and **Add** always saved `rating: 0` and no tags. A session already has both fields, so Edit session, the Diary and sync could already show them.
+
+**Resolution:**
+
+- **How did it go?** 1 to 5, the same control as in Session complete. Tapping the selected number again clears it, as in Edit session, with the same hint underneath.
+- **What did you work on?** The same tags as in Session complete, including your own, and **…** to add a new one (Enter or **Add**). A new tag is saved for next time and offered in both sheets; it syncs like any other tag.
+- **Where:** after *How long*, before *Note*: the same order as in Session complete and Edit session.
+- **All optional.** Leave them blank and the time is logged as before.
+- **Part of the draft,** like the hobby, note and photos (PACE-27). Tapping outside, swiping down, Esc and switching tabs keep the rating, the tags and a half-typed tag. **Cancel** and **Add** clear them. The past-session draft and Session complete keep separate picks.
+- **Saved** in the session's existing `rating` and `tags`, as a timed session's are, so the Diary story, Edit session and sync show them with no other change.
+- **No change** to Supabase, the schema, `vercel.json` or sync.
+
+**Decisions made while building:**
+
+- **A second tap clears the rating,** as in Edit session. In Session complete a rating can be changed but not removed. Clearing keeps a stray tap from forcing a rating on you.
+- **VoiceOver reads the own-tag Add button as "Add tag",** so it is not confused with the sheet's **Add**, which saves the session.
+
+**Found while testing (not changed):** **Cancel** has never reset the length or start time; only **Add** does. So after Cancel, the next draft opens on the last length and hour, while everything else is cleared. Leave as is, or make Cancel reset them too.
+
+**Tested (9 Oct 2026):** the real page in headless Chromium under the site's Content-Security-Policy, local-only. On the PACE-27 build the sheet has no rating or tags. On the new page, 47 checks pass:
+
+- **The controls:** *How did it go?* with 1 to 5, in a group VoiceOver reads as "Rating from 1 to 5". *What did you work on?* with the six tags and **…**. Nothing is picked at first. They sit after How long and before Note, and every target is at least 44 pt.
+- **Rating:** tap to pick, tap again to clear.
+- **Tags:** tap to pick and unpick. Your own tag, by Enter and by **Add tag**: shown, picked and saved for next time, and the field closes.
+- **Saving:** **Add to diary** saves the rating and tags with the session. The next draft starts empty and offers the new tags. The header **Add** with no rating or tags still logs the time.
+- **The draft:** kept after tapping outside, Esc, switching tabs, an Add refused for zero length, and with a half-typed tag. **Cancel** clears all of it, and a tag never added is not saved.
+- **Edit session** shows the rating and tags that were logged.
+- **Session complete is unchanged:** it opens with nothing picked (nothing leaks from a past-session draft), and its rating, tags and own tags save as before. Tags you add on either sheet appear on the other, and the wrap-up does not touch the past-session draft.
+- **With PACE-27:** a picked hobby, rating and tag save together, and the 33 PACE-27 checks still pass.
+- **Every tab renders,** with no page errors. Screenshots in Light and Dark.
+
+**Still to check on iPhone after release:**
+
+- [ ] Log a past session with a rating and two tags: the Diary story shows them under the session.
+- [ ] Add your own tag in Log a past session: Session complete offers it next time, and so does another device after sync.
+- [ ] The sheet still scrolls smoothly down to Note and Photos with the two new sections.
+
 ## PACE-27 · Timer: change the hobby in "Log a past session"
 
 **Type:** Improvement · **Tag:** improvement · **Priority:** Medium · **Status:** Done on branch `claude/confident-tesla-i317cl` (9 Oct 2026), not merged yet
